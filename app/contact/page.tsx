@@ -1,0 +1,99 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- vinext's development optimizer can load a duplicate React instance through next/link */
+import type { Metadata } from "next";
+import { ContactForm } from "@/components/contact/ContactForm";
+import { OrinLogo } from "@/components/site/OrinLogo";
+
+export const metadata: Metadata = {
+  title: "Contact Orin — Renowa Labs",
+  description:
+    "Contact the Orin team about organizing outdoor events, partnerships, product questions and mobile orienteering.",
+};
+
+export default function ContactPage() {
+  return (
+    <>
+      <main className="contact-page">
+        <header className="contact-header">
+          <a href="/" aria-label="Orin home">
+            <OrinLogo />
+          </a>
+          <nav aria-label="Contact page navigation">
+            <a href="/#participants">For participants</a>
+            <a href="/#organizers">For organizers</a>
+            <a className="header-action" href="/">
+              Back to Orin <span aria-hidden="true">↗</span>
+            </a>
+          </nav>
+        </header>
+
+        <section className="contact-layout">
+          <div className="contact-intro">
+            <p className="contact-eyebrow">CONTACT / ORIN</p>
+            <h1>Let&apos;s create something worth going outside for.</h1>
+            <p className="contact-intro__body">
+              Ask about Orin, tell us about an event you want to organize, or
+              start a product partnership with the Renowa Labs team.
+            </p>
+
+            <dl className="contact-facts">
+              <div>
+                <dt>CONTACT</dt>
+                <dd>Use the secure form on this page</dd>
+              </div>
+              <div>
+                <dt>BEST FOR</dt>
+                <dd>Events, clubs, schools and partnerships</dd>
+              </div>
+              <div>
+                <dt>PRODUCT BY</dt>
+                <dd>
+                  <a
+                    href="https://www.renowa-labs.com"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Renowa Labs ↗
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="contact-form-shell">
+            <div className="contact-form-shell__topline">
+              <span>NEW MESSAGE</span>
+              <span>SECURED BY CLOUDFLARE</span>
+            </div>
+            <ContactForm />
+          </div>
+        </section>
+      </main>
+
+      <footer className="orin-footer orin-footer--contact">
+        <OrinLogo />
+        <p>
+          Orin is a mobile orienteering product by{" "}
+          <a
+            href="https://www.renowa-labs.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Renowa Labs
+          </a>
+          .
+        </p>
+        <div>
+          <a href="/">Orin home</a>
+          <a
+            href="https://www.renowa-labs.com"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Renowa Labs
+          </a>
+          <span>© {new Date().getFullYear()} ORIN</span>
+        </div>
+      </footer>
+    </>
+  );
+}
