@@ -277,7 +277,7 @@ function createEndpointIcon(
       ? "#ff641e"
       : status === "complete"
         ? "#159761"
-        : "#60676b";
+        : "#24282b";
 
   context.clearRect(0, 0, 64, 64);
   context.lineCap = "round";
@@ -291,7 +291,10 @@ function createEndpointIcon(
     context.closePath();
     context.fillStyle = status === "complete" ? color : "#ffffff";
     context.fill();
-    context.lineWidth = status === "active" ? 6 : 4;
+    context.lineWidth = 10;
+    context.strokeStyle = "#ffffff";
+    context.stroke();
+    context.lineWidth = status === "active" ? 7 : 5;
     context.strokeStyle = color;
     context.stroke();
   } else {
@@ -299,7 +302,10 @@ function createEndpointIcon(
     context.beginPath();
     context.arc(32, 32, 24, 0, Math.PI * 2);
     context.fill();
-    context.lineWidth = status === "active" ? 6 : 4;
+    context.lineWidth = 10;
+    context.strokeStyle = "#ffffff";
+    context.stroke();
+    context.lineWidth = status === "active" ? 7 : 5;
     context.strokeStyle = color;
     context.stroke();
     context.beginPath();
@@ -461,9 +467,11 @@ export function MapStory() {
           type: "raster",
           source: OOMAP_SOURCE,
           paint: {
+            "raster-contrast": -0.12,
             "raster-fade-duration": 0,
-            "raster-opacity": 1,
+            "raster-opacity": 0.88,
             "raster-resampling": "linear",
+            "raster-saturation": -0.22,
           },
         });
 
@@ -510,6 +518,20 @@ export function MapStory() {
           },
         });
         map.addLayer({
+          id: "orin-control-halo",
+          type: "circle",
+          source: CONTROL_SOURCE,
+          filter: ["==", ["get", "kind"], "control"],
+          paint: {
+            "circle-radius": 23,
+            "circle-color": "#ffffff",
+            "circle-opacity": 0.9,
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 3,
+            "circle-blur": 0.08,
+          },
+        });
+        map.addLayer({
           id: "orin-control-active-ring",
           type: "circle",
           source: CONTROL_SOURCE,
@@ -518,12 +540,12 @@ export function MapStory() {
             "circle-radius": [
               "case",
               ["==", ["get", "status"], "active"],
-              18,
+              28,
               0,
             ],
-            "circle-color": "rgba(255,100,30,0.08)",
+            "circle-color": "rgba(255,100,30,0.16)",
             "circle-stroke-color": "#ff641e",
-            "circle-stroke-width": 1.5,
+            "circle-stroke-width": 3,
             "circle-opacity-transition": { duration: 190 },
             "circle-radius-transition": { duration: 190 },
           },
@@ -534,7 +556,7 @@ export function MapStory() {
           source: CONTROL_SOURCE,
           filter: ["==", ["get", "kind"], "control"],
           paint: {
-            "circle-radius": 14,
+            "circle-radius": 18,
             "circle-color": [
               "case",
               ["==", ["get", "status"], "complete"],
@@ -548,13 +570,13 @@ export function MapStory() {
               "#ff641e",
               "complete",
               "#159761",
-              "#687074",
+              "#24282b",
             ],
             "circle-stroke-width": [
               "case",
               ["==", ["get", "status"], "active"],
+              4,
               3,
-              1.5,
             ],
             "circle-color-transition": { duration: 190 },
             "circle-stroke-color-transition": { duration: 190 },
@@ -567,7 +589,7 @@ export function MapStory() {
           filter: ["==", ["get", "kind"], "control"],
           layout: {
             "text-field": ["get", "label"],
-            "text-size": 12,
+            "text-size": 16,
             "text-font": ["Noto Sans Regular"],
             "text-allow-overlap": true,
           },
@@ -609,7 +631,7 @@ export function MapStory() {
           filter: ["!=", ["get", "kind"], "control"],
           layout: {
             "icon-image": ["get", "icon"],
-            "icon-size": 1,
+            "icon-size": 1.35,
             "icon-allow-overlap": true,
           },
         });
