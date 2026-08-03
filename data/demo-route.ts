@@ -14,7 +14,7 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     label: "ORIN / MOBILE ORIENTEERING",
     headline: "Make every place worth exploring.",
     body: "Orin connects partner organisations with people who want to navigate, explore and compete in the real world.",
-    coordinates: [13.342, 52.5143],
+    coordinates: [49.9322, 40.5805],
     kind: "start",
   },
   {
@@ -25,7 +25,7 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     label: "FOR PARTICIPANTS",
     headline: "Find an event. Then go outside.",
     body: "Browse a nearby event, check the distance and difficulty, and continue in the Orin app when you are ready to start.",
-    coordinates: [13.346, 52.516],
+    coordinates: [49.9352, 40.5826],
     kind: "control",
   },
   {
@@ -36,7 +36,7 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     label: "THE MOBILE EXPERIENCE",
     headline: "Navigate to real control points.",
     body: "Orin shows the next control, your distance and your progress while you move through the event.",
-    coordinates: [13.3497, 52.5128],
+    coordinates: [49.9383, 40.5794],
     kind: "control",
   },
   {
@@ -47,7 +47,7 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     label: "FOR PARTNER ORGANISATIONS",
     headline: "Partner with Orin to publish.",
     body: "Orin events are created with partner organisations. Choose a place, shape the experience and invite people to explore it in the real world.",
-    coordinates: [13.3543, 52.5152],
+    coordinates: [49.935, 40.5766],
     kind: "control",
   },
   {
@@ -58,7 +58,7 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     label: "FINISH / NEXT START",
     headline: "Find your next reason to go outside.",
     body: "Discover partner-led events, navigate real controls and experience familiar places from a different direction.",
-    coordinates: [13.3582, 52.5132],
+    coordinates: [49.9316, 40.5778],
     kind: "finish",
   },
 ];
@@ -125,8 +125,8 @@ export const collectionRadiusGeoJSON: FeatureCollection<Point> = {
 };
 
 export const organizerDraftCoordinates: Coordinate[] = [
-  [13.3562, 52.5165],
-  [13.3567, 52.5117],
+  [49.939, 40.581],
+  [49.9304, 40.5757],
 ];
 
 export const organizerDraftPointsGeoJSON: FeatureCollection<Point> = {

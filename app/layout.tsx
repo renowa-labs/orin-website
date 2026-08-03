@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
               url: `${origin}/og.png`,
               width: 1200,
               height: 630,
-              alt: "An orange-and-white orienteering control in a Berlin park",
+              alt: "An orange-and-white orienteering control on a Baku coastline map",
             },
           ]
         : undefined,

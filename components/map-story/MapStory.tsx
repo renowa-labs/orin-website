@@ -91,7 +91,7 @@ function ParticipantEvidence() {
     <div className="event-summary">
         <div>
           <span>PARTNER EVENT</span>
-          <strong>Tiergarten City Sprint</strong>
+          <strong>Sea Breeze City Sprint</strong>
         </div>
         <dl>
           <div><dt>FORMAT</dt><dd>Sprint</dd></div>
@@ -408,7 +408,7 @@ export function MapStory() {
         container: mapContainerRef.current,
         style: MAPBOX_STYLE_URL,
         accessToken: MAPBOX_ACCESS_TOKEN,
-        center: [13.3502, 52.5144],
+        center: [49.9364, 40.5792],
         zoom: 14.25,
         bearing: 0,
         pitch: 0,
@@ -476,6 +476,7 @@ export function MapStory() {
           id: "orin-collection-radius",
           type: "circle",
           source: RADIUS_SOURCE,
+          slot: "top",
           paint: {
             "circle-radius": 58,
             "circle-color": "#ff641e",
@@ -489,6 +490,7 @@ export function MapStory() {
           id: "orin-control-halo",
           type: "circle",
           source: CONTROL_SOURCE,
+          slot: "top",
           filter: ["==", ["get", "kind"], "control"],
           paint: {
             "circle-radius": 23,
@@ -503,6 +505,7 @@ export function MapStory() {
           id: "orin-control-active-ring",
           type: "circle",
           source: CONTROL_SOURCE,
+          slot: "top",
           filter: ["==", ["get", "kind"], "control"],
           paint: {
             "circle-radius": [
@@ -522,6 +525,7 @@ export function MapStory() {
           id: "orin-control-core",
           type: "circle",
           source: CONTROL_SOURCE,
+          slot: "top",
           filter: ["==", ["get", "kind"], "control"],
           paint: {
             "circle-radius": 18,
@@ -554,6 +558,7 @@ export function MapStory() {
           id: "orin-control-number",
           type: "symbol",
           source: CONTROL_SOURCE,
+          slot: "top",
           filter: ["==", ["get", "kind"], "control"],
           layout: {
             "text-field": ["get", "label"],
@@ -574,6 +579,7 @@ export function MapStory() {
           id: "orin-control-check",
           type: "symbol",
           source: CONTROL_SOURCE,
+          slot: "top",
           filter: [
             "all",
             ["==", ["get", "kind"], "control"],
@@ -596,6 +602,7 @@ export function MapStory() {
           id: "orin-endpoints",
           type: "symbol",
           source: CONTROL_SOURCE,
+          slot: "top",
           filter: ["!=", ["get", "kind"], "control"],
           layout: {
             "icon-image": ["get", "icon"],
@@ -607,6 +614,7 @@ export function MapStory() {
           id: "orin-draft-rings",
           type: "line",
           source: DRAFT_RING_SOURCE,
+          slot: "top",
           paint: {
             "line-color": "#ff641e",
             "line-opacity": 0,
@@ -619,6 +627,7 @@ export function MapStory() {
           id: "orin-draft-labels",
           type: "symbol",
           source: DRAFT_POINT_SOURCE,
+          slot: "top",
           layout: {
             visibility: "none",
             "text-field": ["get", "label"],
@@ -720,7 +729,7 @@ export function MapStory() {
           <div
             ref={mapContainerRef}
             className={`persistent-map ${mapReady ? "is-ready" : ""}`}
-            aria-label="Fixed Mapbox Standard map showing a conceptual Orin demo event in Berlin with start, three controls and finish"
+            aria-label="Fixed Mapbox Standard map showing a conceptual Orin demo event in Sea Breeze, Baku with start, three controls and finish"
           />
           <div className="map-wash" aria-hidden="true" />
 
@@ -735,7 +744,7 @@ export function MapStory() {
 
           <div className="map-identity">
             <span>MAPBOX STANDARD / PARTNER EVENT</span>
-            <strong>TIERGARTEN / BERLIN</strong>
+            <strong>SEABREEZE / BAKU</strong>
           </div>
 
           <nav className="story-progress" aria-label="Story progress">
@@ -760,7 +769,7 @@ export function MapStory() {
           {!mapReady && !mapFailed && (
             <div className="map-loading">
               <span />
-              <p>Loading the Tiergarten demo event…</p>
+              <p>Loading the Sea Breeze demo event…</p>
             </div>
           )}
           {mapFailed && (
