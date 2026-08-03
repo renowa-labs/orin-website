@@ -30,11 +30,12 @@ test("server-renders the Orin acquisition story", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /Orin — Turn Any Place Into a Course/);
-  assert.match(html, /Turn any place into a course\./);
+  assert.match(html, /Orin — Events That Get You Outside/);
+  assert.match(html, /Make every place worth exploring\./);
   assert.match(html, /Events are played in the Orin mobile app, not in the browser\./);
   assert.match(html, /Find an event\. Then go outside\./);
-  assert.match(html, /Create an event anywhere\./);
+  assert.match(html, /Partner with Orin to publish\./);
+  assert.match(html, /For partner organisations/);
   assert.match(html, /MOBILE APP PREVIEW/);
   assert.match(html, /Coming soon/);
   assert.match(html, /Renowa Labs/);
@@ -46,7 +47,7 @@ test("server-renders the Orin contact page and protected form", async () => {
   assert.equal(response.status, 200);
 
   const html = await response.text();
-  assert.match(html, /Let(?:&#x27;|')s create something worth going outside for\./);
+  assert.match(html, /Let(?:&#x27;|')s plan something worth going outside for\./);
   assert.match(html, /SECURED BY CLOUDFLARE/);
   assert.match(html, /Use the secure form on this page/);
   assert.match(html, /product by/);

@@ -6,7 +6,7 @@ import { OrinLogo } from "@/components/site/OrinLogo";
 export const metadata: Metadata = {
   title: "Contact Orin — Renowa Labs",
   description:
-    "Contact the Orin team about organizing outdoor events, partnerships, product questions and mobile orienteering.",
+    "Contact the Orin team about partner events, collaborations, product questions and mobile orienteering.",
 };
 
 export default function ContactPage() {
@@ -19,7 +19,7 @@ export default function ContactPage() {
           </a>
           <nav aria-label="Contact page navigation">
             <a href="/#participants">For participants</a>
-            <a href="/#organizers">For organizers</a>
+            <a href="/#organizers">For partner organisations</a>
             <a className="header-action" href="/">
               Back to Orin <span aria-hidden="true">↗</span>
             </a>
@@ -29,9 +29,9 @@ export default function ContactPage() {
         <section className="contact-layout">
           <div className="contact-intro">
             <p className="contact-eyebrow">CONTACT / ORIN</p>
-            <h1>Let&apos;s create something worth going outside for.</h1>
+            <h1>Let&apos;s plan something worth going outside for.</h1>
             <p className="contact-intro__body">
-              Ask about Orin, tell us about an event you want to organize, or
+              Ask about Orin, tell us about an event your organisation runs, or
               start a product partnership with the Renowa Labs team.
             </p>
 
@@ -42,7 +42,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <dt>BEST FOR</dt>
-                <dd>Events, clubs, schools and partnerships</dd>
+                <dd>Partner events, clubs, schools and collaborations</dd>
               </div>
               <div>
                 <dt>PRODUCT BY</dt>

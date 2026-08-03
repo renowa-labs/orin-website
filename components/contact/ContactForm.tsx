@@ -140,7 +140,7 @@ export function ContactForm() {
           />
         </Field>
 
-        <Field label="Organization" error={errors.company?.message}>
+        <Field label="Organisation" error={errors.company?.message}>
           <input
             {...register("company")}
             type="text"
@@ -176,7 +176,7 @@ export function ContactForm() {
             aria-describedby={
               errors.message ? "contact-message-error" : undefined
             }
-            placeholder="Tell us about your event, organization, partnership or question."
+            placeholder="Tell us about your event, organisation, partnership or question."
           />
         </Field>
 

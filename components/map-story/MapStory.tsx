@@ -72,13 +72,13 @@ function ConceptSequence() {
   return (
     <div
       className="concept-sequence"
-      aria-label="Discover an event, open it in Orin, reach the controls, finish the course"
+      aria-label="Discover an event, open it in Orin, reach the controls, complete the event"
     >
       {[
         "DISCOVER AN EVENT",
         "OPEN IT IN ORIN",
         "REACH THE CONTROLS",
-        "FINISH THE COURSE",
+        "COMPLETE THE EVENT",
       ].map((step, index) => (
         <span key={step}>
           <b>{String(index + 1).padStart(2, "0")}</b>
@@ -92,9 +92,9 @@ function ConceptSequence() {
 function ParticipantEvidence() {
   return (
     <>
-      <div className="event-summary">
+    <div className="event-summary">
         <div>
-          <span>DEMO EVENT</span>
+          <span>PARTNER EVENT</span>
           <strong>Tiergarten City Sprint</strong>
         </div>
         <dl>
@@ -104,10 +104,10 @@ function ParticipantEvidence() {
           <div><dt>LEVEL</dt><dd>Beginner friendly</dd></div>
         </dl>
       </div>
-      <ul className="benefit-list">
-        <li>Discover local events</li>
-        <li>Understand the course before joining</li>
-        <li>Open the event directly in Orin</li>
+    <ul className="benefit-list">
+      <li>Discover local events</li>
+      <li>Understand the event before joining</li>
+      <li>Open the event directly in Orin</li>
       </ul>
     </>
   );
@@ -150,8 +150,8 @@ function OrganizerSteps() {
   return (
     <ol className="organizer-steps">
       <li><b>01</b><span>Choose the event area</span></li>
-      <li><b>02</b><span>Place the controls</span></li>
-      <li><b>03</b><span>Publish the event</span></li>
+      <li><b>02</b><span>Plan the controls</span></li>
+      <li><b>03</b><span>Publish with Orin</span></li>
     </ol>
   );
 }
@@ -248,11 +248,11 @@ function StoryPanel({
         <>
           <div className="story-panel__actions">
             <a className="primary-action" href="/contact">
-              Learn about organizing <Arrow />
+              Talk about a partnership <Arrow />
             </a>
           </div>
           <p className="organizer-use-case">
-            Built for clubs, communities, schools, campuses and independent organizers.
+            For partner organisations, including clubs, schools, campuses and communities.
           </p>
         </>
       )}
@@ -427,7 +427,7 @@ export function MapStory() {
         attributionControl: {
           compact: true,
           customAttribution:
-            'StreetO rendering © <a href="https://oomap.dna-software.co.uk/" target="_blank" rel="noopener noreferrer">OpenOrienteeringMap</a>',
+            'OpenOrienteeringMap © <a href="https://oomap.dna-software.co.uk/" target="_blank" rel="noopener noreferrer">OOMap</a>',
         },
       });
       mapRef.current = map;
@@ -760,13 +760,13 @@ export function MapStory() {
             <a href="#start" aria-label="Orin home"><OrinLogo /></a>
             <nav aria-label="Main navigation">
               <a href="#participants">Participants</a>
-              <a href="#organizers">Organizers</a>
+              <a href="#organizers">Partners</a>
               <a className="header-action" href="#finish">Get Orin <Arrow /></a>
             </nav>
           </header>
 
           <div className="map-identity">
-            <span>DEMO EVENT</span>
+            <span>OPENORIENTEERINGMAP / PARTNER EVENT</span>
             <strong>TIERGARTEN / BERLIN</strong>
           </div>
 
@@ -826,10 +826,10 @@ export function MapStory() {
         </div>
 
         <ol className="sr-only">
-          <li>What Orin is: a mobile orienteering platform</li>
+          <li>How Orin works: a mobile orienteering platform</li>
           <li>For participants: discover and review an event</li>
           <li>Inside the app: navigate to physical controls</li>
-          <li>For organizers: create and publish an event</li>
+          <li>For partner organisations: publish an event with Orin</li>
           <li>Get Orin: join the waitlist or download the app</li>
         </ol>
       </main>

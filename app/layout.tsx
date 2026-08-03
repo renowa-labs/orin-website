@@ -26,17 +26,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const origin = host ? `${protocol}://${host}` : undefined;
 
   return {
-    title: "Orin — Turn Any Place Into a Course",
+    title: "Orin — Events That Get You Outside",
     description:
-      "Discover mobile orienteering events, navigate to real controls in the Orin app, or create an outdoor event for your community.",
+      "Discover partner-led orienteering events, navigate to real controls in the Orin app, or talk to us about publishing with Orin.",
     icons: {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
     },
     openGraph: {
-      title: "Orin — Turn Any Place Into a Course",
+      title: "Orin — Events That Get You Outside",
       description:
-        "One place, two experiences: discover a real-world course or create one for your community.",
+        "Discover an event on the web, then navigate real control points in the Orin mobile app.",
       type: "website",
       images: origin
         ? [
@@ -51,9 +51,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Orin — Turn Any Place Into a Course",
+      title: "Orin — Events That Get You Outside",
       description:
-        "Discover a course on the web, then navigate every real control in the Orin mobile app.",
+        "Discover a partner-led event on the web, then navigate every real control in the Orin mobile app.",
       images: origin ? [`${origin}/og.png`] : undefined,
     },
   };
