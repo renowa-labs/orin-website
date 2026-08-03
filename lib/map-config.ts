@@ -1,39 +1,15 @@
-import type { PaddingOptions, StyleSpecification } from "maplibre-gl";
+import type { PaddingOptions } from "mapbox-gl";
 
-export const DEFAULT_MAP_STYLE: StyleSpecification = {
-  version: 8,
-  name: "Orin OOMap canvas",
-  glyphs: "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf",
-  sources: {},
-  layers: [
-    {
-      id: "orin-map-background",
-      type: "background",
-      paint: {
-        "background-color": "#f6f4ee",
-      },
-    },
-  ],
-};
+// This is the same Mapbox Standard style used by ORIENTEERING_FRONT.
+export const MAPBOX_STYLE_URL =
+  process.env.NEXT_PUBLIC_MAPBOX_STYLE_URL || "mapbox://styles/mapbox/standard";
 
-export const MAP_STYLE: string | StyleSpecification =
-  process.env.NEXT_PUBLIC_MAP_STYLE_URL || DEFAULT_MAP_STYLE;
-
-export const OOMAP_IMAGE_URL = "/assets/tiergarten-oomap.jpg";
-
-// OOMap StreetO export: A4 landscape, 1:7,000, centred on Tiergarten.
-// MapLibre image-source coordinates are ordered top-left clockwise.
-export const OOMAP_IMAGE_COORDINATES: [
-  [number, number],
-  [number, number],
-  [number, number],
-  [number, number],
-] = [
-  [13.340759011895658, 52.51818903378775],
-  [13.359434986652502, 52.51818903378775],
-  [13.359434986652502, 52.51015278765278],
-  [13.340759011895658, 52.51015278765278],
-];
+// Public Mapbox tokens are intended for client-side map rendering. Keep this
+// fallback aligned with the mobile app so the hosted site works without a
+// separate runtime environment variable.
+export const MAPBOX_ACCESS_TOKEN =
+  process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
+  "pk.eyJ1IjoidnVnYXJoc252IiwiYSI6ImNtcW8zOW1yNTAwMXMycXF2dG1wcmxjcDMifQ.wMVD_CKHif8JZohSHpXAkw";
 
 export const STORY_MOBILE_BREAKPOINT = 820;
 

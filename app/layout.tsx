@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { IBM_Plex_Mono, Instrument_Sans } from "next/font/google";
 import { ToastProvider } from "@/components/site/ToastProvider";
-import "maplibre-gl/dist/maplibre-gl.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 import "./globals.css";
 
 const instrumentSans = Instrument_Sans({

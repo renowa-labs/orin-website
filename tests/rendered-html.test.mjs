@@ -109,7 +109,7 @@ test("keeps the fixed map line-free, snapped and non-playable", async () => {
     readFile(new URL("../lib/contact/turnstile.ts", import.meta.url), "utf8"),
   ]);
 
-  assert.equal((mapStory.match(/new maplibregl\.Map\(/g) ?? []).length, 1);
+  assert.equal((mapStory.match(/new mapboxgl\.Map\(/g) ?? []).length, 1);
   assert.match(mapStory, /interactive:\s*false/);
   assert.match(mapStory, /scrollZoom:\s*false/);
   assert.match(mapStory, /touchPitch:\s*false/);
@@ -130,21 +130,17 @@ test("keeps the fixed map line-free, snapped and non-playable", async () => {
   );
   assert.doesNotMatch(
     mapStory,
-    /flyTo|easeTo|jumpTo|panTo|NavigationControl|new maplibregl\.Marker/,
+    /flyTo|easeTo|jumpTo|panTo|NavigationControl|new mapboxgl\.Marker/,
   );
   assert.doesNotMatch(
     mapStory,
     /route-completed|route-current|route-base|reset-route/,
   );
-  assert.match(
-    mapConfig,
-    /https:\/\/tiles\.openfreemap\.org\/fonts\/\{fontstack\}\/\{range\}\.pbf/,
-  );
-  assert.match(mapConfig, /orin-map-background/);
-  assert.match(mapConfig, /\/assets\/tiergarten-oomap\.jpg/);
-  assert.match(mapStory, /type:\s*"image"/);
-  assert.match(mapStory, /type:\s*"raster"/);
-  assert.match(mapStory, /OpenOrienteeringMap/);
+  assert.match(mapConfig, /mapbox:\/\/styles\/mapbox\/standard/);
+  assert.match(mapConfig, /MAPBOX_ACCESS_TOKEN/);
+  assert.match(mapStory, /style:\s*MAPBOX_STYLE_URL/);
+  assert.match(mapStory, /accessToken:\s*MAPBOX_ACCESS_TOKEN/);
+  assert.match(mapStory, /mapbox-gl/);
   assert.match(mapStory, /Tiergarten City Sprint/);
   assert.equal((routeData.match(/^    chapterId:/gm) ?? []).length, 5);
   assert.match(routeData, /createControlGeoJSON/);

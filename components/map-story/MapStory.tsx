@@ -6,8 +6,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type {
   GeoJSONSource,
   LngLatBoundsLike,
-  Map as MapLibreMap,
-} from "maplibre-gl";
+  Map as MapboxMap,
+} from "mapbox-gl";
 import {
   collectionRadiusGeoJSON,
   controlCoordinates,
@@ -18,9 +18,8 @@ import {
 } from "../../data/demo-route";
 import {
   getFixedMapPadding,
-  MAP_STYLE,
-  OOMAP_IMAGE_COORDINATES,
-  OOMAP_IMAGE_URL,
+  MAPBOX_ACCESS_TOKEN,
+  MAPBOX_STYLE_URL,
   STORY_MOBILE_BREAKPOINT,
 } from "../../lib/map-config";
 import type { ControlKind, ControlStatus } from "../../types/story";
@@ -29,9 +28,6 @@ import { OrinLogo } from "../site/OrinLogo";
 gsap.registerPlugin(ScrollTrigger);
 
 const CONTROL_SOURCE = "orin-controls";
-const OOMAP_SOURCE = "orin-oomap";
-const OOMAP_BACKDROP = "orin-oomap-backdrop";
-const OOMAP_LAYER = "orin-oomap-raster";
 const RADIUS_SOURCE = "orin-collection-radius";
 const DRAFT_POINT_SOURCE = "orin-draft-points";
 const DRAFT_RING_SOURCE = "orin-draft-rings";
@@ -329,7 +325,7 @@ function createEndpointIcon(
 
 export function MapStory() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
   const chapterRefs = useRef<(HTMLElement | null)[]>([]);
   const viewportRef = useRef({ width: 0, height: 0, mobile: false });
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -405,12 +401,13 @@ export function MapStory() {
     let loadTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const initializeMap = async () => {
-      const maplibregl = await import("maplibre-gl");
+      const mapboxgl = await import("mapbox-gl");
       if (cancelled || !mapContainerRef.current) return;
 
-      const map = new maplibregl.Map({
+      const map = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: MAP_STYLE,
+        style: MAPBOX_STYLE_URL,
+        accessToken: MAPBOX_ACCESS_TOKEN,
         center: [13.3502, 52.5144],
         zoom: 14.25,
         bearing: 0,
@@ -424,11 +421,7 @@ export function MapStory() {
         keyboard: false,
         pitchWithRotate: false,
         touchPitch: false,
-        attributionControl: {
-          compact: true,
-          customAttribution:
-            'OpenOrienteeringMap © <a href="https://oomap.dna-software.co.uk/" target="_blank" rel="noopener noreferrer">OOMap</a>',
-        },
+        attributionControl: true,
       });
       mapRef.current = map;
 
@@ -449,31 +442,6 @@ export function MapStory() {
       map.on("load", () => {
         if (cancelled) return;
         if (loadTimeout) clearTimeout(loadTimeout);
-
-        map.addSource(OOMAP_SOURCE, {
-          type: "image",
-          url: OOMAP_IMAGE_URL,
-          coordinates: OOMAP_IMAGE_COORDINATES,
-        });
-        map.addLayer({
-          id: OOMAP_BACKDROP,
-          type: "background",
-          paint: {
-            "background-color": "#f6f4ee",
-          },
-        });
-        map.addLayer({
-          id: OOMAP_LAYER,
-          type: "raster",
-          source: OOMAP_SOURCE,
-          paint: {
-            "raster-contrast": -0.12,
-            "raster-fade-duration": 0,
-            "raster-opacity": 0.88,
-            "raster-resampling": "linear",
-            "raster-saturation": -0.22,
-          },
-        });
 
         (["future", "active", "complete"] as ControlStatus[]).forEach(
           (status) => {
@@ -752,7 +720,7 @@ export function MapStory() {
           <div
             ref={mapContainerRef}
             className={`persistent-map ${mapReady ? "is-ready" : ""}`}
-            aria-label="Fixed map showing a conceptual Orin demo event in Berlin with start, three controls and finish"
+            aria-label="Fixed Mapbox Standard map showing a conceptual Orin demo event in Berlin with start, three controls and finish"
           />
           <div className="map-wash" aria-hidden="true" />
 
@@ -766,7 +734,7 @@ export function MapStory() {
           </header>
 
           <div className="map-identity">
-            <span>OPENORIENTEERINGMAP / PARTNER EVENT</span>
+            <span>MAPBOX STANDARD / PARTNER EVENT</span>
             <strong>TIERGARTEN / BERLIN</strong>
           </div>
 
