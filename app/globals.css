@@ -138,44 +138,18 @@ a {
 }
 
 .orin-brand__mark {
-  background: var(--orin-surface);
-  border: 2px solid var(--orin-ink);
-  border-radius: 50%;
-  display: inline-block;
-  height: 24px;
-  position: relative;
-  width: 24px;
+  border-radius: 8px;
+  display: inline-flex;
+  height: 28px;
+  overflow: hidden;
+  width: 28px;
 }
 
-.orin-brand__mark::before {
-  background: var(--orin-surface);
-  content: "";
-  height: 10px;
-  position: absolute;
-  right: -3px;
-  top: -2px;
-  width: 10px;
-}
-
-.orin-brand__mark::after {
-  background: var(--orin-orange);
-  content: "";
-  height: 2px;
-  position: absolute;
-  right: -4px;
-  top: 4px;
-  transform: rotate(-40deg);
-  width: 14px;
-}
-
-.orin-brand__mark i {
-  background: var(--orin-orange);
-  border-radius: 50%;
-  height: 4px;
-  left: 8px;
-  position: absolute;
-  top: 8px;
-  width: 4px;
+.orin-brand__mark img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
 }
 
 .orin-header nav {
@@ -1189,8 +1163,9 @@ body:has(.contact-page) {
   }
 
   .orin-brand__mark {
-    height: 22px;
-    width: 22px;
+    border-radius: 7px;
+    height: 24px;
+    width: 24px;
   }
 
   .orin-header nav > a:not(.header-action) {

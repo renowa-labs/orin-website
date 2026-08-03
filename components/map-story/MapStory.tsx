@@ -9,7 +9,6 @@ import type {
   Map as MapboxMap,
 } from "mapbox-gl";
 import {
-  collectionRadiusGeoJSON,
   controlCoordinates,
   createControlGeoJSON,
   organizerDraftPointsGeoJSON,
@@ -28,7 +27,6 @@ import { OrinLogo } from "../site/OrinLogo";
 gsap.registerPlugin(ScrollTrigger);
 
 const CONTROL_SOURCE = "orin-controls";
-const RADIUS_SOURCE = "orin-collection-radius";
 const DRAFT_POINT_SOURCE = "orin-draft-points";
 const DRAFT_RING_SOURCE = "orin-draft-rings";
 
@@ -323,6 +321,41 @@ function createEndpointIcon(
   return context.getImageData(0, 0, 64, 64);
 }
 
+function createControlIcon(status: ControlStatus, label: string): ImageData {
+  const scale = 2;
+  const width = 54;
+  const height = 56;
+  const canvas = document.createElement("canvas");
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas is unavailable");
+
+  const color = status === "complete" ? "#16a34a" : "#f26b2c";
+  context.scale(scale, scale);
+  context.lineJoin = "round";
+  context.shadowColor = "rgba(24, 24, 27, 0.22)";
+  context.shadowBlur = 4;
+  context.shadowOffsetY = 2;
+  context.beginPath();
+  context.moveTo(27, 54);
+  context.bezierCurveTo(27, 54, 7, 38, 7, 24);
+  context.arc(27, 24, 20, Math.PI, 0, false);
+  context.bezierCurveTo(47, 38, 27, 54, 27, 54);
+  context.closePath();
+  context.fillStyle = color;
+  context.fill();
+  context.shadowColor = "transparent";
+
+  context.fillStyle = "#ffffff";
+  context.font = `700 ${label.length > 1 ? 11 : 13}px Arial, sans-serif`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(label, 27, 24);
+
+  return context.getImageData(0, 0, canvas.width, canvas.height);
+}
+
 export function MapStory() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapboxMap | null>(null);
@@ -363,18 +396,6 @@ export function MapStory() {
 
     const source = map.getSource(CONTROL_SOURCE) as GeoJSONSource | undefined;
     source?.setData(createControlGeoJSON(index));
-
-    const showCollectionRadius = index === 2;
-    map.setPaintProperty(
-      "orin-collection-radius",
-      "circle-opacity",
-      showCollectionRadius ? 0.1 : 0,
-    );
-    map.setPaintProperty(
-      "orin-collection-radius",
-      "circle-stroke-opacity",
-      showCollectionRadius ? 0.68 : 0,
-    );
 
     const showDrafts = index === 3;
     map.setPaintProperty(
@@ -452,16 +473,21 @@ export function MapStory() {
                 { pixelRatio: 2 },
               );
             });
+            storyCheckpoints
+              .filter((checkpoint) => checkpoint.kind === "control")
+              .forEach((checkpoint) => {
+                map.addImage(
+                  `control-${status}-${checkpoint.mapLabel}`,
+                  createControlIcon(status, checkpoint.mapLabel),
+                  { pixelRatio: 2 },
+                );
+              });
           },
         );
 
         map.addSource(CONTROL_SOURCE, {
           type: "geojson",
           data: createControlGeoJSON(0),
-        });
-        map.addSource(RADIUS_SOURCE, {
-          type: "geojson",
-          data: collectionRadiusGeoJSON,
         });
         map.addSource(DRAFT_POINT_SOURCE, {
           type: "geojson",
@@ -473,129 +499,17 @@ export function MapStory() {
         });
 
         map.addLayer({
-          id: "orin-collection-radius",
-          type: "circle",
-          source: RADIUS_SOURCE,
-          slot: "top",
-          paint: {
-            "circle-radius": 58,
-            "circle-color": "#ff641e",
-            "circle-opacity": 0,
-            "circle-stroke-color": "#ff641e",
-            "circle-stroke-width": 1.5,
-            "circle-stroke-opacity": 0,
-          },
-        });
-        map.addLayer({
-          id: "orin-control-halo",
-          type: "circle",
-          source: CONTROL_SOURCE,
-          slot: "top",
-          filter: ["==", ["get", "kind"], "control"],
-          paint: {
-            "circle-radius": 23,
-            "circle-color": "#ffffff",
-            "circle-opacity": 0.9,
-            "circle-stroke-color": "#ffffff",
-            "circle-stroke-width": 3,
-            "circle-blur": 0.08,
-          },
-        });
-        map.addLayer({
-          id: "orin-control-active-ring",
-          type: "circle",
-          source: CONTROL_SOURCE,
-          slot: "top",
-          filter: ["==", ["get", "kind"], "control"],
-          paint: {
-            "circle-radius": [
-              "case",
-              ["==", ["get", "status"], "active"],
-              28,
-              0,
-            ],
-            "circle-color": "rgba(255,100,30,0.16)",
-            "circle-stroke-color": "#ff641e",
-            "circle-stroke-width": 3,
-            "circle-opacity-transition": { duration: 190 },
-            "circle-radius-transition": { duration: 190 },
-          },
-        });
-        map.addLayer({
-          id: "orin-control-core",
-          type: "circle",
-          source: CONTROL_SOURCE,
-          slot: "top",
-          filter: ["==", ["get", "kind"], "control"],
-          paint: {
-            "circle-radius": 18,
-            "circle-color": [
-              "case",
-              ["==", ["get", "status"], "complete"],
-              "#159761",
-              "#ffffff",
-            ],
-            "circle-stroke-color": [
-              "match",
-              ["get", "status"],
-              "active",
-              "#ff641e",
-              "complete",
-              "#159761",
-              "#24282b",
-            ],
-            "circle-stroke-width": [
-              "case",
-              ["==", ["get", "status"], "active"],
-              4,
-              3,
-            ],
-            "circle-color-transition": { duration: 190 },
-            "circle-stroke-color-transition": { duration: 190 },
-          },
-        });
-        map.addLayer({
-          id: "orin-control-number",
+          id: "orin-control-markers",
           type: "symbol",
           source: CONTROL_SOURCE,
           slot: "top",
           filter: ["==", ["get", "kind"], "control"],
           layout: {
-            "text-field": ["get", "label"],
-            "text-size": 16,
-            "text-font": ["Noto Sans Regular"],
-            "text-allow-overlap": true,
-          },
-          paint: {
-            "text-color": [
-              "case",
-              ["==", ["get", "status"], "complete"],
-              "#ffffff",
-              "#121416",
-            ],
-          },
-        });
-        map.addLayer({
-          id: "orin-control-check",
-          type: "symbol",
-          source: CONTROL_SOURCE,
-          slot: "top",
-          filter: [
-            "all",
-            ["==", ["get", "kind"], "control"],
-            ["==", ["get", "status"], "complete"],
-          ],
-          layout: {
-            "text-field": "✓",
-            "text-size": 12,
-            "text-font": ["Noto Sans Regular"],
-            "text-offset": [1.15, -1.05],
-            "text-allow-overlap": true,
-          },
-          paint: {
-            "text-color": "#ffffff",
-            "text-halo-color": "#159761",
-            "text-halo-width": 2,
+            "icon-image": ["get", "markerIcon"],
+            "icon-size": 0.82,
+            "icon-anchor": "bottom",
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
           },
         });
         map.addLayer({

@@ -30,8 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Discover partner-led orienteering events, navigate to real controls in the Orin app, or talk to us about publishing with Orin.",
     icons: {
-      icon: "/favicon.svg",
-      shortcut: "/favicon.svg",
+      icon: "/favicon.png",
+      shortcut: "/favicon.png",
+      apple: "/brand/orin-favicon-180.png",
     },
     openGraph: {
       title: "Orin — Events That Get You Outside",

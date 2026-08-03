@@ -75,6 +75,7 @@ type ControlProperties = {
   kind: StoryCheckpoint["kind"];
   status: ControlStatus;
   icon: string;
+  markerIcon: string;
 };
 
 export function createControlGeoJSON(
@@ -100,6 +101,10 @@ export function createControlGeoJSON(
           kind: checkpoint.kind,
           status,
           icon: `${checkpoint.kind}-${status}`,
+          markerIcon:
+            checkpoint.kind === "control"
+              ? `control-${status}-${checkpoint.mapLabel}`
+              : "",
         },
         geometry: {
           type: "Point",
@@ -109,20 +114,6 @@ export function createControlGeoJSON(
     }),
   };
 }
-
-export const collectionRadiusGeoJSON: FeatureCollection<Point> = {
-  type: "FeatureCollection",
-  features: [
-    {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "Point",
-        coordinates: storyCheckpoints[2].coordinates,
-      },
-    },
-  ],
-};
 
 export const organizerDraftCoordinates: Coordinate[] = [
   [49.939, 40.581],

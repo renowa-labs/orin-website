@@ -141,6 +141,9 @@ test("keeps the fixed map line-free, snapped and non-playable", async () => {
   assert.match(mapStory, /style:\s*MAPBOX_STYLE_URL/);
   assert.match(mapStory, /accessToken:\s*MAPBOX_ACCESS_TOKEN/);
   assert.match(mapStory, /mapbox-gl/);
+  assert.match(mapStory, /createControlIcon/);
+  assert.match(mapStory, /orin-control-markers/);
+  assert.doesNotMatch(mapStory, /orin-collection-radius/);
   assert.match(mapStory, /Sea Breeze City Sprint/);
   assert.equal((routeData.match(/^    chapterId:/gm) ?? []).length, 5);
   assert.match(routeData, /createControlGeoJSON/);
