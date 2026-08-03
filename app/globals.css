@@ -1596,6 +1596,17 @@ body:has(.contact-page) {
   }
 }
 
+/* Keep the editorial paper treatment square on touch-sized layouts. */
+@media (max-width: 820px) {
+  .map-identity,
+  .mobile-progress,
+  .story-panel,
+  .story-panel.is-active,
+  .contact-form-shell {
+    transform: none;
+  }
+}
+
 @media (min-width: 600px) and (max-width: 820px) {
   .story-panel,
   .story-panel--app {
