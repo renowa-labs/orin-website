@@ -19,8 +19,8 @@ export default function ContactPage() {
           </a>
           <nav aria-label="Contact page navigation">
             <a href="/#participants">For participants</a>
-            <a href="/#organizers">For partner organisations</a>
-            <a className="header-action" href="/">
+            <a href="/#partners">For partners</a>
+            <a className="header-cta" href="/">
               Back to Orriii <span aria-hidden="true">↗</span>
             </a>
           </nav>

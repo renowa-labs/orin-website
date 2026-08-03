@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const origin = host ? `${protocol}://${host}` : undefined;
 
   return {
-    title: "Orriii — Turn any place into an adventure",
+    title: "Orriii — Explore partner-created outdoor events",
     description:
       "Discover partner-led orienteering events, navigate to real controls in the Orriii app, or talk to us about publishing with Orriii.",
     icons: {
@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: "/assets/orriii-brand.png",
     },
     openGraph: {
-      title: "Orriii — Turn any place into an adventure",
+      title: "Orriii — Explore partner-created outdoor events",
       description:
         "Discover an event on the web, then navigate real control points in the Orriii mobile app.",
       type: "website",
@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Orriii — Turn any place into an adventure",
+      title: "Orriii — Explore partner-created outdoor events",
       description:
         "Discover a partner-led event on the web, then navigate every real control in the Orriii mobile app.",
       images: origin ? [`${origin}/og.png`] : undefined,

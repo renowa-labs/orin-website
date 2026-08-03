@@ -24,20 +24,18 @@ async function render(path = "/", init) {
   );
 }
 
-test("server-renders the Orriii acquisition story", async () => {
+test("server-renders the Orriii event discovery page", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /Orriii — Turn any place into an adventure/);
-  assert.match(html, /Orriii turns any place into an adventure\./);
-  assert.match(html, /Find a route worth exploring\./);
-  assert.match(html, /Know where to go next\./);
-  assert.match(html, /Build a course around your place\./);
-  assert.match(html, /The finish is only the next beginning\./);
-  assert.match(html, /Sea Breeze City Sprint/);
-  assert.match(html, /Your next adventure is in your pocket\./);
+  assert.match(html, /Orriii — Explore partner-created outdoor events/);
+  assert.match(html, /An event worth stepping out for\./);
+  assert.match(html, /Partners publish events\. Participants join the events that are already live\./);
+  assert.match(html, /One clear view while you explore\./);
+  assert.match(html, /Create the event\. We help people find it\./);
+  assert.match(html, /SEA BREEZE \/ BAKU/);
   assert.match(html, /Coming soon/);
   assert.match(html, /Renowa Labs/);
   assert.match(html, /href="\/contact"/);
@@ -76,10 +74,9 @@ test("contact API rejects invalid submissions before delivery", async () => {
   assert.match(payload.message, /highlighted fields/i);
 });
 
-test("keeps the single fixed map story non-playable and progressive", async () => {
+test("keeps the map as stable context and preserves contact safeguards", async () => {
   const [
     mapStory,
-    routeData,
     mapConfig,
     page,
     css,
@@ -93,7 +90,6 @@ test("keeps the single fixed map story non-playable and progressive", async () =
       new URL("../components/map-story/MapStory.tsx", import.meta.url),
       "utf8",
     ),
-    readFile(new URL("../data/demo-route.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/map-config.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
@@ -112,18 +108,13 @@ test("keeps the single fixed map story non-playable and progressive", async () =
 
   assert.equal((mapStory.match(/new mapboxgl\.Map\(/g) ?? []).length, 1);
   assert.match(mapStory, /interactive:\s*false/);
-  assert.match(mapStory, /scrollZoom:\s*false/);
-  assert.match(mapStory, /touchPitch:\s*false/);
-  assert.match(mapStory, /onEnterBack/);
-  assert.match(mapStory, /new mapboxgl\.Marker/);
-  assert.match(mapStory, /map\.easeTo/);
   assert.match(mapStory, /map\.fitBounds/);
-  assert.match(mapStory, /orriii-route-completed/);
-  assert.match(mapStory, /orriii-route-active/);
-  assert.match(mapStory, /orriii-route-upcoming/);
-  assert.match(mapStory, /gsap\.to\(progress/);
-  assert.match(mapStory, /assets\/orriii-brand\.png/);
-  assert.match(css, /\.story-scene\s*\{\s*height:\s*500svh/);
+  assert.match(mapStory, /Only partners publish events with Orriii/);
+  assert.match(mapStory, /assets\/orriii-iphone-product\.png/);
+  assert.match(css, /\.event-story\s*\{/);
+  assert.match(mapStory, /ScrollTrigger/);
+  assert.match(mapStory, /new mapboxgl\.Marker/);
+  assert.match(mapStory, /orriii-event-progress/);
   assert.match(css, /prefers-reduced-motion/);
   assert.doesNotMatch(
     mapStory,
@@ -134,11 +125,7 @@ test("keeps the single fixed map story non-playable and progressive", async () =
   assert.match(mapStory, /style:\s*MAPBOX_STYLE_URL/);
   assert.match(mapStory, /accessToken:\s*MAPBOX_ACCESS_TOKEN/);
   assert.match(mapStory, /mapbox-gl/);
-  assert.match(mapStory, /createMarkerElement/);
-  assert.match(mapStory, /organizerDraftRingsGeoJSON/);
-  assert.match(mapStory, /Sea Breeze City Sprint/);
-  assert.equal((routeData.match(/^    chapterId:/gm) ?? []).length, 5);
-  assert.match(routeData, /createControlGeoJSON/);
+  assert.match(mapStory, /SEA BREEZE \/ BAKU/);
   assert.match(page, /<MapStory \/>/);
   assert.match(contactForm, /react-hook-form/);
   assert.match(contactForm, /toast\.success/);
@@ -156,6 +143,7 @@ test("keeps the single fixed map story non-playable and progressive", async () =
     `${mapStory}\n${contactPage}`,
     /href=["']#["']|javascript:|https?:\/\/example\.com/i,
   );
+  assert.doesNotMatch(mapStory, /\bcourse\b/i);
 
   for (const [, value] of css.matchAll(/font-size:\s*([\d.]+)px/g)) {
     assert.ok(
