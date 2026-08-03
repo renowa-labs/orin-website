@@ -27,7 +27,7 @@ declare global {
   }
 }
 
-const SCRIPT_ID = "orin-turnstile-script";
+const SCRIPT_ID = "orriii-turnstile-script";
 const SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 

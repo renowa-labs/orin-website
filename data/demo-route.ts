@@ -11,9 +11,9 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     chapterId: "start",
     mapLabel: "S",
     progressLabel: "HOW IT WORKS",
-    label: "ORIN / MOBILE ORIENTEERING",
-    headline: "Make every place worth exploring.",
-    body: "Orin connects partner organisations with people who want to navigate, explore and compete in the real world.",
+    label: "EXPLORE. NAVIGATE. CONNECT.",
+    headline: "Orriii turns any place into an adventure.",
+    body: "Orriii is a mobile orienteering experience for explorers, organizers and destinations. Discover routes, navigate real checkpoints and experience familiar places in a new way.",
     coordinates: [49.9322, 40.5805],
     kind: "start",
   },
@@ -23,8 +23,8 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     mapLabel: "1",
     progressLabel: "PARTICIPANTS",
     label: "FOR PARTICIPANTS",
-    headline: "Find an event. Then go outside.",
-    body: "Browse a nearby event, check the distance and difficulty, and continue in the Orin app when you are ready to start.",
+    headline: "Find a route worth exploring.",
+    body: "Browse nearby events, understand the distance and difficulty, and start when you are ready.",
     coordinates: [49.9352, 40.5826],
     kind: "control",
   },
@@ -33,9 +33,9 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     chapterId: "mobile-app",
     mapLabel: "2",
     progressLabel: "MOBILE APP",
-    label: "THE MOBILE EXPERIENCE",
-    headline: "Navigate to real control points.",
-    body: "Orin shows the next control, your distance and your progress while you move through the event.",
+    label: "THE ORRIII APP",
+    headline: "Know where to go next.",
+    body: "Follow the course, see the distance to the next control and track your progress while moving through the real world.",
     coordinates: [49.9383, 40.5794],
     kind: "control",
   },
@@ -43,10 +43,10 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     id: "control-03",
     chapterId: "organizers",
     mapLabel: "3",
-    progressLabel: "PARTNERS",
-    label: "FOR PARTNER ORGANISATIONS",
-    headline: "Partner with Orin to publish.",
-    body: "Orin events are created with partner organisations. Choose a place, shape the experience and invite people to explore it in the real world.",
+    progressLabel: "ORGANIZERS",
+    label: "FOR ORGANIZERS",
+    headline: "Build a course around your place.",
+    body: "Create checkpoints around a park, resort, campus or community and publish a real-world experience for visitors.",
     coordinates: [49.935, 40.5766],
     kind: "control",
   },
@@ -54,10 +54,10 @@ export const storyCheckpoints: StoryCheckpoint[] = [
     id: "finish",
     chapterId: "finish",
     mapLabel: "F",
-    progressLabel: "GET ORIN",
-    label: "FINISH / NEXT START",
-    headline: "Find your next reason to go outside.",
-    body: "Discover partner-led events, navigate real controls and experience familiar places from a different direction.",
+    progressLabel: "GET ORRIII",
+    label: "FINISH / NEXT ADVENTURE",
+    headline: "The finish is only the next beginning.",
+    body: "Bring outdoor discovery, navigation and playful competition to the places people already love.",
     coordinates: [49.9316, 40.5778],
     kind: "finish",
   },
@@ -67,15 +67,13 @@ export const controlCoordinates: Coordinate[] = storyCheckpoints.map(
   (checkpoint) => checkpoint.coordinates,
 );
 
-type ControlProperties = {
+export type ControlProperties = {
   id: string;
   chapterId: string;
   index: number;
   label: string;
   kind: StoryCheckpoint["kind"];
   status: ControlStatus;
-  icon: string;
-  markerIcon: string;
 };
 
 export function createControlGeoJSON(
@@ -100,11 +98,6 @@ export function createControlGeoJSON(
           label: checkpoint.mapLabel,
           kind: checkpoint.kind,
           status,
-          icon: `${checkpoint.kind}-${status}`,
-          markerIcon:
-            checkpoint.kind === "control"
-              ? `control-${status}-${checkpoint.mapLabel}`
-              : "",
         },
         geometry: {
           type: "Point",
@@ -124,14 +117,14 @@ export const organizerDraftPointsGeoJSON: FeatureCollection<Point> = {
   type: "FeatureCollection",
   features: organizerDraftCoordinates.map((coordinates, index) => ({
     type: "Feature",
-    properties: { label: `D${index + 1}` },
+    properties: { label: `P${index + 1}` },
     geometry: { type: "Point", coordinates },
   })),
 };
 
 function circlePolygon(
   center: Coordinate,
-  radiusMeters = 32,
+  radiusMeters = 34,
   steps = 40,
 ): Coordinate[] {
   const [longitude, latitude] = center;

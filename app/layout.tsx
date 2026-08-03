@@ -26,18 +26,18 @@ export async function generateMetadata(): Promise<Metadata> {
   const origin = host ? `${protocol}://${host}` : undefined;
 
   return {
-    title: "Orin — Events That Get You Outside",
+    title: "Orriii — Turn any place into an adventure",
     description:
-      "Discover partner-led orienteering events, navigate to real controls in the Orin app, or talk to us about publishing with Orin.",
+      "Discover partner-led orienteering events, navigate to real controls in the Orriii app, or talk to us about publishing with Orriii.",
     icons: {
       icon: "/favicon.png",
       shortcut: "/favicon.png",
-      apple: "/brand/orin-favicon-180.png",
+      apple: "/assets/orriii-brand.png",
     },
     openGraph: {
-      title: "Orin — Events That Get You Outside",
+      title: "Orriii — Turn any place into an adventure",
       description:
-        "Discover an event on the web, then navigate real control points in the Orin mobile app.",
+        "Discover an event on the web, then navigate real control points in the Orriii mobile app.",
       type: "website",
       images: origin
         ? [
@@ -52,9 +52,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Orin — Events That Get You Outside",
+      title: "Orriii — Turn any place into an adventure",
       description:
-        "Discover a partner-led event on the web, then navigate every real control in the Orin mobile app.",
+        "Discover a partner-led event on the web, then navigate every real control in the Orriii mobile app.",
       images: origin ? [`${origin}/og.png`] : undefined,
     },
   };

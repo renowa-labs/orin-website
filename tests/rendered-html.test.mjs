@@ -24,25 +24,26 @@ async function render(path = "/", init) {
   );
 }
 
-test("server-renders the Orin acquisition story", async () => {
+test("server-renders the Orriii acquisition story", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /Orin — Events That Get You Outside/);
-  assert.match(html, /Make every place worth exploring\./);
-  assert.match(html, /Events are played in the Orin mobile app, not in the browser\./);
-  assert.match(html, /Find an event\. Then go outside\./);
-  assert.match(html, /Partner with Orin to publish\./);
-  assert.match(html, /For partner organisations/);
-  assert.match(html, /MOBILE APP PREVIEW/);
+  assert.match(html, /Orriii — Turn any place into an adventure/);
+  assert.match(html, /Orriii turns any place into an adventure\./);
+  assert.match(html, /Find a route worth exploring\./);
+  assert.match(html, /Know where to go next\./);
+  assert.match(html, /Build a course around your place\./);
+  assert.match(html, /The finish is only the next beginning\./);
+  assert.match(html, /Sea Breeze City Sprint/);
+  assert.match(html, /Your next adventure is in your pocket\./);
   assert.match(html, /Coming soon/);
   assert.match(html, /Renowa Labs/);
   assert.match(html, /href="\/contact"/);
 });
 
-test("server-renders the Orin contact page and protected form", async () => {
+test("server-renders the Orriii contact page and protected form", async () => {
   const response = await render("/contact");
   assert.equal(response.status, 200);
 
@@ -75,7 +76,7 @@ test("contact API rejects invalid submissions before delivery", async () => {
   assert.match(payload.message, /highlighted fields/i);
 });
 
-test("keeps the fixed map line-free, snapped and non-playable", async () => {
+test("keeps the single fixed map story non-playable and progressive", async () => {
   const [
     mapStory,
     routeData,
@@ -114,36 +115,27 @@ test("keeps the fixed map line-free, snapped and non-playable", async () => {
   assert.match(mapStory, /scrollZoom:\s*false/);
   assert.match(mapStory, /touchPitch:\s*false/);
   assert.match(mapStory, /onEnterBack/);
-  assert.match(mapStory, /placement="desktop"/);
-  assert.match(mapStory, /placement="mobile"/);
-  assert.match(css, /orin-iphone-product\.png/);
-  assert.match(css, /\.story-chapter--app\s*\{[^}]*gap:/s);
-  assert.match(
-    css,
-    /\.app-device-showcase\s*\{[^}]*border-radius:[^}]*overflow:\s*hidden/s,
-  );
-  assert.match(css, /scroll-snap-type:\s*y mandatory/);
-  assert.match(css, /scroll-snap-stop:\s*always/);
+  assert.match(mapStory, /new mapboxgl\.Marker/);
+  assert.match(mapStory, /map\.easeTo/);
+  assert.match(mapStory, /map\.fitBounds/);
+  assert.match(mapStory, /orriii-route-completed/);
+  assert.match(mapStory, /orriii-route-active/);
+  assert.match(mapStory, /orriii-route-upcoming/);
+  assert.match(mapStory, /gsap\.to\(progress/);
+  assert.match(mapStory, /assets\/orriii-brand\.png/);
+  assert.match(css, /\.story-scene\s*\{\s*height:\s*500svh/);
+  assert.match(css, /prefers-reduced-motion/);
   assert.doesNotMatch(
     mapStory,
     /navigator\.geolocation|getCurrentPosition|watchPosition/,
-  );
-  assert.doesNotMatch(
-    mapStory,
-    /flyTo|easeTo|jumpTo|panTo|NavigationControl|new mapboxgl\.Marker/,
-  );
-  assert.doesNotMatch(
-    mapStory,
-    /route-completed|route-current|route-base|reset-route/,
   );
   assert.match(mapConfig, /mapbox:\/\/styles\/mapbox\/standard/);
   assert.match(mapConfig, /MAPBOX_ACCESS_TOKEN/);
   assert.match(mapStory, /style:\s*MAPBOX_STYLE_URL/);
   assert.match(mapStory, /accessToken:\s*MAPBOX_ACCESS_TOKEN/);
   assert.match(mapStory, /mapbox-gl/);
-  assert.match(mapStory, /createControlIcon/);
-  assert.match(mapStory, /orin-control-markers/);
-  assert.doesNotMatch(mapStory, /orin-collection-radius/);
+  assert.match(mapStory, /createMarkerElement/);
+  assert.match(mapStory, /organizerDraftRingsGeoJSON/);
   assert.match(mapStory, /Sea Breeze City Sprint/);
   assert.equal((routeData.match(/^    chapterId:/gm) ?? []).length, 5);
   assert.match(routeData, /createControlGeoJSON/);
@@ -153,7 +145,7 @@ test("keeps the fixed map line-free, snapped and non-playable", async () => {
   assert.match(contactForm, /TurnstileWidget/);
   assert.match(contactRoute, /consumeContactAttempt/);
   assert.match(contactRoute, /verifyTurnstileToken/);
-  assert.match(contactMailer, /\[Orin Contact\]/);
+  assert.match(contactMailer, /\[Orriii Contact\]/);
   assert.match(contactMailer, /info@renowa-labs\.com/);
   assert.match(turnstile, /challenges\.cloudflare\.com/);
   assert.doesNotMatch(

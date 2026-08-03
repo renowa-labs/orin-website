@@ -96,7 +96,7 @@ export function ContactForm() {
       resetTurnstile();
       reset();
       toast.success("Message sent", {
-        description: "Thanks for reaching out. The Orin team will reply soon.",
+        description: "Thanks for reaching out. The Orriii team will reply soon.",
       });
     } catch {
       resetTurnstile();

@@ -19,25 +19,18 @@ export function getFixedMapPadding(isMobile: boolean): PaddingOptions {
   }
 
   if (isMobile) {
-    const sheetRatio =
-      window.innerWidth <= 350 || window.innerHeight <= 620
-        ? 0.74
-        : window.innerWidth >= 600
-          ? 0.52
-          : 0.6;
-
     return {
-      top: 82,
-      right: 24,
-      bottom: Math.round(window.innerHeight * sheetRatio),
-      left: 24,
+      top: 74,
+      right: 28,
+      bottom: 58,
+      left: 28,
     };
   }
 
   return {
-    top: 96,
-    right: Math.min(180, Math.round(window.innerWidth * 0.18)),
-    bottom: 76,
-    left: Math.min(590, Math.round(window.innerWidth * 0.54)),
+    top: 86,
+    right: 196,
+    bottom: 72,
+    left: 70,
   };
 }

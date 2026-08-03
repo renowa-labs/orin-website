@@ -10,12 +10,12 @@ type RateLimitState = {
 };
 
 const globalRateLimit = globalThis as typeof globalThis & {
-  __orinContactRateLimit?: RateLimitState;
+  __orriiiContactRateLimit?: RateLimitState;
 };
 
 const state: RateLimitState =
-  globalRateLimit.__orinContactRateLimit ??
-  (globalRateLimit.__orinContactRateLimit = {
+  globalRateLimit.__orriiiContactRateLimit ??
+  (globalRateLimit.__orriiiContactRateLimit = {
     attempts: new Map(),
     submissions: new Map(),
   });

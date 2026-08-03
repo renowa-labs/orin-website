@@ -17,12 +17,12 @@ export function ToastProvider() {
       visibleToasts={3}
       toastOptions={{
         classNames: {
-          toast: "orin-toast",
-          content: "orin-toast__content",
-          title: "orin-toast__title",
-          description: "orin-toast__description",
-          closeButton: "orin-toast__close",
-          actionButton: "orin-toast__action",
+          toast: "orriii-toast",
+          content: "orriii-toast__content",
+          title: "orriii-toast__title",
+          description: "orriii-toast__description",
+          closeButton: "orriii-toast__close",
+          actionButton: "orriii-toast__action",
         },
       }}
     />

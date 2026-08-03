@@ -137,12 +137,12 @@ export async function POST(request: Request) {
     return response(
       {
         ok: true,
-        message: "Thanks. Your message has been sent to the Orin team.",
+        message: "Thanks. Your message has been sent to the Orriii team.",
       },
       200,
     );
   } catch (error) {
-    console.error("Orin contact email delivery failed", {
+    console.error("Orriii contact email delivery failed", {
       type:
         error instanceof MailConfigurationError
           ? "configuration"

@@ -1,12 +1,12 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- vinext's development optimizer can load a duplicate React instance through next/link */
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/contact/ContactForm";
-import { OrinLogo } from "@/components/site/OrinLogo";
+import { OrriiiLogo } from "@/components/site/OrriiiLogo";
 
 export const metadata: Metadata = {
-  title: "Contact Orin — Renowa Labs",
+  title: "Contact Orriii — Renowa Labs",
   description:
-    "Contact the Orin team about partner events, collaborations, product questions and mobile orienteering.",
+    "Contact the Orriii team about partner events, collaborations, product questions and mobile orienteering.",
 };
 
 export default function ContactPage() {
@@ -14,24 +14,24 @@ export default function ContactPage() {
     <>
       <main className="contact-page">
         <header className="contact-header">
-          <a href="/" aria-label="Orin home">
-            <OrinLogo />
+          <a href="/" aria-label="Orriii home">
+            <OrriiiLogo />
           </a>
           <nav aria-label="Contact page navigation">
             <a href="/#participants">For participants</a>
             <a href="/#organizers">For partner organisations</a>
             <a className="header-action" href="/">
-              Back to Orin <span aria-hidden="true">↗</span>
+              Back to Orriii <span aria-hidden="true">↗</span>
             </a>
           </nav>
         </header>
 
         <section className="contact-layout">
           <div className="contact-intro">
-            <p className="contact-eyebrow">CONTACT / ORIN</p>
+            <p className="contact-eyebrow">CONTACT / ORRIII</p>
             <h1>Let&apos;s plan something worth going outside for.</h1>
             <p className="contact-intro__body">
-              Ask about Orin, tell us about an event your organisation runs, or
+              Ask about Orriii, tell us about an event your organisation runs, or
               start a product partnership with the Renowa Labs team.
             </p>
 
@@ -69,10 +69,10 @@ export default function ContactPage() {
         </section>
       </main>
 
-      <footer className="orin-footer orin-footer--contact">
-        <OrinLogo />
+      <footer className="orriii-footer orriii-footer--contact">
+        <OrriiiLogo />
         <p>
-          Orin is a mobile orienteering product by{" "}
+          Orriii is a mobile orienteering product by{" "}
           <a
             href="https://www.renowa-labs.com"
             target="_blank"
@@ -83,7 +83,7 @@ export default function ContactPage() {
           .
         </p>
         <div>
-          <a href="/">Orin home</a>
+          <a href="/">Orriii home</a>
           <a
             href="https://www.renowa-labs.com"
             target="_blank"
@@ -91,7 +91,7 @@ export default function ContactPage() {
           >
             Renowa Labs
           </a>
-          <span>© {new Date().getFullYear()} ORIN</span>
+          <span>© {new Date().getFullYear()} ORRIII</span>
         </div>
       </footer>
     </>

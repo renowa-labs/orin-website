@@ -15,7 +15,7 @@ const mailEnvironmentSchema = z.object({
   BREVO_SMTP_USER: z.string().trim().min(1),
   BREVO_SMTP_PASSWORD: z.string().min(1),
   CONTACT_FROM_EMAIL: z.string().trim().email(),
-  CONTACT_FROM_NAME: z.string().trim().min(1).default("Orin Website"),
+  CONTACT_FROM_NAME: z.string().trim().min(1).default("Orriii Website"),
   CONTACT_TO_EMAIL: z
     .string()
     .trim()
@@ -102,8 +102,8 @@ export async function sendContactEmail({
   const company = contact.company || "Not provided";
   const timestamp = receivedAt.toISOString();
   const text = [
-    "New enquiry from the Orin website",
-    "Orin is a Renowa Labs product.",
+    "New enquiry from the Orriii website",
+    "Orriii is a Renowa Labs product.",
     "",
     `Name: ${contact.name}`,
     `Email: ${contact.email}`,
@@ -117,8 +117,8 @@ export async function sendContactEmail({
   ].join("\n");
   const html = `
     <div style="font-family:Arial,sans-serif;color:#171717;line-height:1.6">
-      <h1 style="font-size:20px">New Orin website enquiry</h1>
-      <p style="color:#666666">Orin is a Renowa Labs product.</p>
+      <h1 style="font-size:20px">New Orriii website enquiry</h1>
+      <p style="color:#666666">Orriii is a Renowa Labs product.</p>
       <table cellpadding="6" cellspacing="0" style="border-collapse:collapse">
         <tr><th align="left">Name</th><td>${escapeHtml(contact.name)}</td></tr>
         <tr><th align="left">Email</th><td>${escapeHtml(contact.email)}</td></tr>
@@ -139,7 +139,7 @@ export async function sendContactEmail({
       },
       to: environment.CONTACT_TO_EMAIL,
       replyTo: { name: contact.name, address: contact.email },
-      subject: `[Orin Contact] ${contact.subject}`,
+      subject: `[Orriii Contact] ${contact.subject}`,
       text,
       html,
     }),
