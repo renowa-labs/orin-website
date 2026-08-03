@@ -24,19 +24,18 @@ async function render(path = "/", init) {
   );
 }
 
-test("server-renders the Orriii event discovery page", async () => {
+test("server-renders the Orriii course homepage", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /Orriii — Explore partner-created outdoor events/);
-  assert.match(html, /An event worth stepping out for\./);
-  assert.match(html, /Partners publish events\. Participants join the events that are already live\./);
-  assert.match(html, /One clear view while you explore\./);
-  assert.match(html, /Create the event\. We help people find it\./);
+  assert.match(html, /Orriii — Turn the map into a game/);
+  assert.match(html, /Turn the map into a game\./);
+  assert.match(html, /The adventure continues in your pocket\./);
+  assert.match(html, /Turn your place into a playable route\./);
   assert.match(html, /SEA BREEZE \/ BAKU/);
-  assert.match(html, /Coming soon/);
+  assert.match(html, /App Store — Coming soon/);
   assert.match(html, /Renowa Labs/);
   assert.match(html, /href="\/contact"/);
 });
@@ -85,6 +84,7 @@ test("keeps the map as stable context and preserves contact safeguards", async (
     contactRoute,
     contactMailer,
     turnstile,
+    appStore,
   ] = await Promise.all([
     readFile(
       new URL("../components/map-story/MapStory.tsx", import.meta.url),
@@ -104,17 +104,22 @@ test("keeps the map as stable context and preserves contact safeguards", async (
       "utf8",
     ),
     readFile(new URL("../lib/contact/turnstile.ts", import.meta.url), "utf8"),
+    readFile(new URL("../lib/app-store.ts", import.meta.url), "utf8"),
   ]);
 
   assert.equal((mapStory.match(/new mapboxgl\.Map\(/g) ?? []).length, 1);
   assert.match(mapStory, /interactive:\s*false/);
   assert.match(mapStory, /map\.fitBounds/);
-  assert.match(mapStory, /Only partners publish events with Orriii/);
+  assert.match(mapStory, /Turn your place into a playable route/);
   assert.match(mapStory, /assets\/orriii-iphone-product\.png/);
-  assert.match(css, /\.event-story\s*\{/);
+  assert.match(css, /\.story-course\s*\{/);
   assert.match(mapStory, /ScrollTrigger/);
   assert.match(mapStory, /new mapboxgl\.Marker/);
-  assert.match(mapStory, /orriii-event-progress/);
+  assert.match(mapStory, /orriii-route-active/);
+  assert.match(mapStory, /line-dasharray/);
+  assert.match(mapStory, /OrriiiMascot/);
+  assert.match(mapStory, /setLngLat/);
+  assert.match(mapStory, /prefers-reduced-motion/);
   assert.match(css, /prefers-reduced-motion/);
   assert.doesNotMatch(
     mapStory,
@@ -143,7 +148,9 @@ test("keeps the map as stable context and preserves contact safeguards", async (
     `${mapStory}\n${contactPage}`,
     /href=["']#["']|javascript:|https?:\/\/example\.com/i,
   );
-  assert.doesNotMatch(mapStory, /\bcourse\b/i);
+  assert.match(mapStory, /storyChapters/);
+  assert.match(appStore, /NEXT_PUBLIC_APP_STORE_URL/);
+  assert.match(appStore, /url\.protocol === "https:"/);
 
   for (const [, value] of css.matchAll(/font-size:\s*([\d.]+)px/g)) {
     assert.ok(

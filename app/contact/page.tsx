@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- vinext's development optimizer can load a duplicate React instance through next/link */
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/contact/ContactForm";
+import { AppStoreButton } from "@/components/site/AppStoreButton";
 import { OrriiiLogo } from "@/components/site/OrriiiLogo";
 
 export const metadata: Metadata = {
@@ -18,11 +19,9 @@ export default function ContactPage() {
             <OrriiiLogo />
           </a>
           <nav aria-label="Contact page navigation">
-            <a href="/#participants">For participants</a>
+            <a href="/#explorers">For explorers</a>
             <a href="/#partners">For partners</a>
-            <a className="header-cta" href="/">
-              Back to Orriii <span aria-hidden="true">↗</span>
-            </a>
+            <AppStoreButton className="header-cta" />
           </nav>
         </header>
 
