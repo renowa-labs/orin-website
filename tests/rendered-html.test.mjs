@@ -1,25 +1,57 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import test from "node:test";
+import { createServer } from "node:net";
+import { after, before, test } from "node:test";
+
+let port;
+let server;
+
+async function getAvailablePort() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+      if (!address || typeof address === "string") {
+        reject(new Error("Could not reserve a local test port."));
+        return;
+      }
+      probe.close((error) => (error ? reject(error) : resolve(address.port)));
+    });
+  });
+}
+
+before(async () => {
+  port = await getAvailablePort();
+  server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], {
+    cwd: new URL("..", import.meta.url),
+    stdio: "ignore",
+  });
+
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/`);
+      if (response.ok) return;
+    } catch {
+      // The server is still starting.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error("Next.js production server did not start within 30 seconds.");
+});
+
+after(() => {
+  server?.kill();
+});
 
 async function render(path = "/", init) {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request(`http://localhost${path}`, {
+  return fetch(
+    `http://127.0.0.1:${port}${path}`,
+    {
       headers: { accept: "text/html" },
       ...init,
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
     },
   );
 }

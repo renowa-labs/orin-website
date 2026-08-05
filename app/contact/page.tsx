@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-html-link-for-pages -- vinext's development optimizer can load a duplicate React instance through next/link */
 import type { Metadata } from "next";
+import Link from "next/link";
 import { GeometricShapes } from "@/components/brand/GeometricShapes";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { OrriiiLogo } from "@/components/site/OrriiiLogo";
@@ -95,7 +95,7 @@ export default async function ContactPage({
           .
         </p>
         <div>
-          <a href="/">Orriii home</a>
+          <Link href="/">Orriii home</Link>
           <a href="/privacy">Privacy</a>
           <a
             href="https://www.renowa-labs.com"
