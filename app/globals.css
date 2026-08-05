@@ -258,6 +258,16 @@ button {
   transition: transform 180ms var(--ease-out);
   width: 25px;
 }
+.button-arrow circle {
+  fill: transparent;
+  stroke: currentColor;
+  transition:
+    fill 180ms var(--ease-out),
+    stroke 180ms var(--ease-out);
+}
+.button-arrow path {
+  stroke: currentColor;
+}
 .arrow-icon,
 .download-arrow {
   fill: none;
@@ -2412,17 +2422,18 @@ button {
   }
   .app-store-button:hover .button-arrow,
   .primary-action:hover .button-arrow {
-    background: var(--orriii-paper);
-    border-color: var(--orriii-paper);
     color: var(--orriii-orange-deep);
     transform: translate(3px, -3px);
   }
   .outline-action:hover .button-arrow,
   .secondary-action:hover .button-arrow {
-    background: var(--orriii-orange);
-    border-color: var(--orriii-orange);
     color: var(--orriii-paper);
     transform: translate(3px, -3px);
+  }
+  .outline-action:hover .button-arrow circle,
+  .secondary-action:hover .button-arrow circle {
+    fill: var(--orriii-orange);
+    stroke: var(--orriii-orange);
   }
   .map-course-progress button:hover {
     transform: translateY(-2px);
