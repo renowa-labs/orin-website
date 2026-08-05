@@ -52,6 +52,17 @@ const chapterCamera = [
   { zoom: 15.65 },
 ] as const;
 const selectedPlacement: Coordinate = [49.9381, 40.5792];
+const fullMapCoordinates = [...fullRouteCoordinates, selectedPlacement];
+const fullMapBounds: [Coordinate, Coordinate] = [
+  [
+    Math.min(...fullMapCoordinates.map(([longitude]) => longitude)),
+    Math.min(...fullMapCoordinates.map(([, latitude]) => latitude)),
+  ],
+  [
+    Math.max(...fullMapCoordinates.map(([longitude]) => longitude)),
+    Math.max(...fullMapCoordinates.map(([, latitude]) => latitude)),
+  ],
+];
 
 function lineData(coordinates: Coordinate[]): FeatureCollection<LineString> {
   return {
@@ -169,7 +180,12 @@ function CollectionTicket({ checkpointIndex }: { checkpointIndex: number }) {
 }
 
 function Arrow() {
-  return <span className="button-arrow" aria-hidden="true">↗</span>;
+  return (
+    <svg aria-hidden="true" className="button-arrow" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10.5" />
+      <path d="m8 16 8-8m-6 0h6v6" />
+    </svg>
+  );
 }
 
 function ChapterModule({ active }: { active: number }) {
@@ -383,14 +399,28 @@ export function MapStory() {
   }
 
   function cameraToChapter(map: MapboxMap, chapterIndex: number) {
+    const isMobile = window.innerWidth <= STORY_MOBILE_BREAKPOINT;
+    map.stop();
+
+    // The map only occupies the upper portion of the mobile layout. Keep the
+    // whole route (and the placement marker) in that smaller canvas instead
+    // of zooming to a single chapter and clipping the remaining checkpoints.
+    if (isMobile) {
+      map.fitBounds(fullMapBounds, {
+        padding: getFixedMapPadding(true),
+        duration: reducedMotionRef.current ? 0 : 460,
+        maxZoom: 15.8,
+      });
+      return;
+    }
+
     const target = targetCheckpointForChapter(chapterIndex);
     const camera = chapterCamera[chapterIndex] ?? chapterCamera[0];
-    map.stop();
     map.easeTo({
       center: demoCheckpoints[target].coordinates,
       zoom: camera.zoom,
       duration: reducedMotionRef.current ? 0 : 460,
-      padding: getFixedMapPadding(window.innerWidth <= STORY_MOBILE_BREAKPOINT),
+      padding: getFixedMapPadding(false),
       bearing: 0,
       pitch: 0,
     });

@@ -73,6 +73,7 @@ button {
   padding: 0 clamp(24px, 5vw, 80px);
   position: sticky;
   top: 0;
+  width: 100vw;
   z-index: 30;
 }
 .site-header__home {
@@ -247,14 +248,13 @@ button {
   font-size: 16px;
 }
 .button-arrow {
-  align-items: center;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  display: inline-grid;
-  font-size: 16px;
+  fill: none;
+  flex: 0 0 auto;
   height: 25px;
-  justify-content: center;
-  line-height: 1;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
   transition: transform 180ms var(--ease-out);
   width: 25px;
 }
@@ -285,6 +285,7 @@ button {
   overflow: hidden;
   position: sticky;
   top: 76px;
+  width: 100vw;
   z-index: 1;
 }
 .story-course__map {
@@ -2022,18 +2023,18 @@ button {
     top: 64px;
   }
   .story-course__map {
-    bottom: 54%;
+    bottom: 50%;
     left: 0;
     top: 0;
   }
   .story-course__copy {
     background: var(--orriii-cream);
-    height: 54%;
+    height: 50%;
     justify-content: center;
     left: 0;
     overflow: hidden;
     padding: 18px 20px 20px;
-    top: 46%;
+    top: 50%;
     width: 100%;
   }
   .story-kicker {
@@ -2353,11 +2354,11 @@ button {
 
 @media (max-width: 820px) and (max-height: 720px) {
   .story-course__map {
-    bottom: 57%;
+    bottom: 52%;
   }
   .story-course__copy {
-    height: 57%;
-    top: 43%;
+    height: 52%;
+    top: 48%;
   }
   .chapter-module,
   .organizer-explainer {

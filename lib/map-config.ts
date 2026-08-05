@@ -20,10 +20,10 @@ export function getFixedMapPadding(isMobile: boolean): PaddingOptions {
 
   if (isMobile) {
     return {
-      top: 74,
-      right: 28,
-      bottom: 58,
-      left: 28,
+      top: 68,
+      right: 24,
+      bottom: 52,
+      left: 24,
     };
   }
 
