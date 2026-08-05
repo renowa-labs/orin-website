@@ -17,7 +17,7 @@ export function WaterIcon({ className = "" }: IconProps) {
 }
 
 export function DiscoveryIcon({ className = "" }: IconProps) {
-  return <svg aria-hidden="true" className={className} viewBox="0 0 64 64"><path className="icon-fill-green" d="m32 9 6 15 17 2-13 11 4 17-14-9-14 9 4-17L9 26l17-2Z" /><path d="M32 9v15m17 2H37m9 28-14-9m-14 9 4-17" /></svg>;
+  return <svg aria-hidden="true" className={className} viewBox="0 0 64 64"><path className="icon-fill-yellow" d="m32 9 6 15 17 2-13 11 4 17-14-9-14 9 4-17L9 26l17-2Z" /><path d="M32 9v15m17 2H37m9 28-14-9m-14 9 4-17" /></svg>;
 }
 
 export function FinishFlag({ className = "" }: IconProps) {
@@ -32,20 +32,12 @@ export function LocationArrow({ className = "" }: IconProps) {
   return <svg aria-hidden="true" className={className} viewBox="0 0 32 32"><path className="icon-fill-orange" d="m16 3 8 23-8-5-8 5Z" /><path d="M16 3v18" /></svg>;
 }
 
-export function Footprints({ className = "" }: IconProps) {
-  return <svg aria-hidden="true" className={className} viewBox="0 0 42 24"><path d="M10 19c-4 0-6-3-5-7l2-7c1-3 4-4 6-2 3 2 3 7 2 10-1 4-2 6-5 6Zm22 0c-4 0-6-3-5-7l2-7c1-3 4-4 6-2 3 2 3 7 2 10-1 4-2 6-5 6Z" /><circle cx="10" cy="4" r="1" /><circle cx="32" cy="4" r="1" /></svg>;
-}
-
 export function PartnerIcon({ className = "" }: IconProps) {
   return <svg aria-hidden="true" className={className} viewBox="0 0 64 64"><path className="icon-fill-blue" d="M10 27 32 11l22 16v26H10Z" /><path d="M8 27h48M18 53V33h28v20M26 53V42h12v11M24 23h16" /></svg>;
 }
 
 export function OrganizerFlag({ className = "" }: IconProps) {
-  return <svg aria-hidden="true" className={className} viewBox="0 0 64 64"><path d="M18 55V10m0 2h29L39 23l8 11H18" /><path className="icon-fill-green" d="M22 16h20l-5 7 5 7H22Z" /><path className="icon-fill-orange" d="M15 55h7l-4-8Z" /></svg>;
-}
-
-export function DownloadArrow({ className = "" }: IconProps) {
-  return <svg aria-hidden="true" className={className} viewBox="0 0 24 24"><path d="M12 4v12m0 0 5-5m-5 5-5-5M5 20h14" /></svg>;
+  return <svg aria-hidden="true" className={className} viewBox="0 0 64 64"><path d="M18 55V10m0 2h29L39 23l8 11H18" /><path className="icon-fill-yellow" d="M22 16h20l-5 7 5 7H22Z" /><path className="icon-fill-orange" d="M15 55h7l-4-8Z" /></svg>;
 }
 
 export function TopoPattern({ className = "" }: IconProps) {

@@ -19,7 +19,9 @@ const turnstileSiteKey =
 const turnstileErrorMessage =
   "Verification could not be completed. Please try again.";
 
-export function ContactForm() {
+type ContactInterest = "app-store" | "partner";
+
+export function ContactForm({ initialInterest }: { initialInterest?: ContactInterest }) {
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileError, setTurnstileError] = useState("");
   const [turnstileKey, setTurnstileKey] = useState(0);
@@ -35,7 +37,11 @@ export function ContactForm() {
       name: "",
       email: "",
       company: "",
-      subject: "",
+      subject: initialInterest === "app-store"
+        ? "Orriii early access"
+        : initialInterest === "partner"
+          ? "Orriii partnership"
+          : "",
       message: "",
       website: "",
     },
@@ -148,7 +154,7 @@ export function ContactForm() {
             maxLength={120}
             aria-invalid={Boolean(errors.company)}
             aria-describedby={
-              errors.company ? "contact-organization-error" : undefined
+              errors.company ? "contact-organisation-error" : undefined
             }
             placeholder="Club, school, company or team"
           />
@@ -176,7 +182,11 @@ export function ContactForm() {
             aria-describedby={
               errors.message ? "contact-message-error" : undefined
             }
-            placeholder="Tell us about your event, organisation, partnership or question."
+            placeholder={initialInterest === "app-store"
+              ? "Tell us where you are based and how you would love to use Orriii."
+              : initialInterest === "partner"
+                ? "Tell us about your location, audience and the experience you want to create."
+                : "Tell us about your event, organisation, partnership or question."}
           />
         </Field>
 

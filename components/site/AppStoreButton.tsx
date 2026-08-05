@@ -18,11 +18,13 @@ export function AppStoreButton({ className = "" }: { className?: string }) {
       href={href}
       target={available ? "_blank" : undefined}
       rel={available ? "noreferrer" : undefined}
-      aria-label={available ? "Download Orriii on the App Store" : "App Store — Coming soon"}
+      aria-label="Download Orriii on the App Store"
     >
       <AppleIcon />
-      <span>{available ? "Download on App Store" : "App Store — Coming soon"}</span>
-      <span className="button-arrow" aria-hidden="true">↗</span>
+      <span className="app-store-button__copy">
+        <span className="app-store-button__eyebrow">Download on the</span>
+        <strong>App Store</strong>
+      </span>
     </a>
   );
 }

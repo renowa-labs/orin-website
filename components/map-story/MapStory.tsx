@@ -8,17 +8,18 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { FeatureCollection, LineString } from "geojson";
 import type { GeoJSONSource, Map as MapboxMap, Marker } from "mapbox-gl";
-import { OrriiiMascot, type MascotPose } from "../brand/OrriiiMascot";
+import { OrriiiMapMascot, type MapMascotPose } from "../brand/OrriiiMapMascot";
+import { OrriiiMascot } from "../brand/OrriiiMascot";
 import { AppStoreButton, GooglePlayComingSoon } from "../site/AppStoreButton";
 import { OrriiiLogo } from "../site/OrriiiLogo";
+import { ScrollAwareHeader } from "../site/ScrollAwareHeader";
+import { GeometricShapes } from "../brand/GeometricShapes";
 import {
   CollectedStamp,
-  DiscoveryIcon,
-  Footprints,
   IconForKind,
   LocationArrow,
-  PartnerIcon,
   OrganizerFlag,
+  PartnerIcon,
   TopoPattern,
 } from "./MapIcons";
 import {
@@ -28,7 +29,7 @@ import {
   storyChapters,
   type Coordinate,
 } from "../../data/orriii-demo-route";
-import { flattenThroughCheckpoint, interpolateRoute, routeSliceAtProgress } from "./route-animation";
+import { flattenThroughCheckpoint, getPointAlongRoute, routeSliceAtProgress } from "./route-animation";
 import { getFixedMapPadding, MAPBOX_ACCESS_TOKEN, MAPBOX_STYLE_URL, STORY_MOBILE_BREAKPOINT } from "../../lib/map-config";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -41,6 +42,17 @@ type MarkerHandle = {
   root: RenderRoot;
 };
 
+const chapterCheckpointIndices = [0, 1, 2, 3, 4] as const;
+const progressLabels = ["START", "DISCOVER", "MOVE", "CREATE", "FINISH"] as const;
+const chapterCamera = [
+  { zoom: 15.3 },
+  { zoom: 15.8 },
+  { zoom: 15.72 },
+  { zoom: 15.86 },
+  { zoom: 15.65 },
+] as const;
+const selectedPlacement: Coordinate = [49.9381, 40.5792];
+
 function lineData(coordinates: Coordinate[]): FeatureCollection<LineString> {
   return {
     type: "FeatureCollection",
@@ -50,10 +62,20 @@ function lineData(coordinates: Coordinate[]): FeatureCollection<LineString> {
   };
 }
 
+function targetCheckpointForChapter(chapterIndex: number) {
+  return chapterCheckpointIndices[Math.max(0, Math.min(chapterCheckpointIndices.length - 1, chapterIndex))];
+}
+
+function routePathBetween(fromCheckpoint: number, toCheckpoint: number): Coordinate[] {
+  if (fromCheckpoint === toCheckpoint) return [demoCheckpoints[fromCheckpoint].coordinates];
+  if (fromCheckpoint > toCheckpoint) return routePathBetween(toCheckpoint, fromCheckpoint).reverse();
+  const path = [demoCheckpoints[fromCheckpoint].coordinates];
+  routeSegments.slice(fromCheckpoint, toCheckpoint).forEach((segment) => path.push(...segment.slice(1)));
+  return path;
+}
+
 function futurePathFromCheckpoint(checkpointIndex: number) {
-  const first = demoCheckpoints[checkpointIndex].coordinates;
-  const rest = routeSegments.slice(checkpointIndex).flatMap((segment) => segment.slice(1));
-  return [first, ...rest];
+  return routePathBetween(checkpointIndex, demoCheckpoints.length - 1);
 }
 
 function setSourceData(map: MapboxMap, id: string, coordinates: Coordinate[]) {
@@ -62,21 +84,28 @@ function setSourceData(map: MapboxMap, id: string, coordinates: Coordinate[]) {
 }
 
 function routeStateForChapter(chapterIndex: number) {
+  const targetCheckpoint = targetCheckpointForChapter(chapterIndex);
   return {
-    completed: flattenThroughCheckpoint(routeSegments, chapterIndex),
+    completed: flattenThroughCheckpoint(routeSegments, targetCheckpoint),
     current: [] as Coordinate[],
-    upcoming: futurePathFromCheckpoint(chapterIndex),
+    upcoming: chapterIndex === 3 ? [] : futurePathFromCheckpoint(targetCheckpoint),
   };
 }
 
-function routeStateDuringMove(segmentIndex: number, progress: number) {
-  const segment = routeSegments[segmentIndex];
-  const current = routeSliceAtProgress(segment, progress);
-  const tail = segment.slice(Math.max(0, current.length - 1));
-  const later = routeSegments.slice(segmentIndex + 1).flatMap((item) => item.slice(1));
+function routeStateDuringMove(
+  path: Coordinate[],
+  completedCheckpoint: number,
+  futureCheckpoint: number,
+  progress: number,
+  position: ReturnType<typeof getPointAlongRoute>,
+) {
+  const current = routeSliceAtProgress(path, progress);
+  current[current.length - 1] = position.point;
+  const tail = path.slice(Math.max(0, current.length - 1));
+  const later = routeSegments.slice(futureCheckpoint).flatMap((segment) => segment.slice(1));
 
   return {
-    completed: flattenThroughCheckpoint(routeSegments, segmentIndex),
+    completed: flattenThroughCheckpoint(routeSegments, completedCheckpoint),
     current,
     upcoming: [current[current.length - 1], ...tail, ...later],
   };
@@ -88,8 +117,10 @@ function updateRouteSources(map: MapboxMap, state: ReturnType<typeof routeStateF
   setSourceData(map, "orriii-route-upcoming", state.upcoming);
 }
 
-function checkpointMarkup(kind: (typeof demoCheckpoints)[number]["kind"], number?: string) {
-  return { kind, number };
+function setCheckpointStatuses(elements: HTMLDivElement[], targetCheckpoint: number, activeCheckpoint = targetCheckpoint) {
+  elements.forEach((element, index) => {
+    element.dataset.status = index < targetCheckpoint ? "complete" : index === activeCheckpoint ? "active" : "upcoming";
+  });
 }
 
 function CheckpointToken({
@@ -103,18 +134,37 @@ function CheckpointToken({
     <div className="checkpoint-token">
       <span className="checkpoint-token__icon"><IconForKind kind={kind} /></span>
       {number ? <span className="checkpoint-token__number">{number}</span> : null}
-      <span className="checkpoint-token__label">NEXT STOP</span>
+      <span className="checkpoint-token__next">NEXT</span>
       <span className="checkpoint-token__stamp"><CollectedStamp /></span>
-      <span className="checkpoint-token__burst" aria-hidden="true"><i /><i /><i /><i /></span>
+      <span className="checkpoint-token__burst" aria-hidden="true"><i /><i /><i /></span>
     </div>
   );
 }
 
-function MascotMarker({ pose }: { pose: MascotPose }) {
+function MascotMarker({ pose }: { pose: MapMascotPose }) {
   return (
     <span className="mascot-marker__inner">
-      <span className="mascot-marker__bob"><OrriiiMascot pose={pose} /></span>
+      <span className="mascot-marker__bob"><OrriiiMapMascot pose={pose} /></span>
     </span>
+  );
+}
+
+function PlacementAnnotation() {
+  return <span className="placement-annotation"><OrganizerFlag /><span><b>NEW CHECKPOINT</b><strong>Waterfront stop</strong></span></span>;
+}
+
+function CollectionTicket({ checkpointIndex }: { checkpointIndex: number }) {
+  const checkpoint = demoCheckpoints[checkpointIndex];
+  const isFinish = checkpoint.kind === "finish";
+  const next = isFinish ? "Another adventure" : demoCheckpoints[checkpointIndex + 1]?.name ?? "Finish flag";
+  const label = isFinish ? "ROUTE COMPLETE" : `${checkpoint.name.toUpperCase()} COLLECTED`;
+  const count = isFinish ? "3 / 3 checkpoints" : `${Math.min(checkpointIndex, 3)} / 3 checkpoints`;
+
+  return (
+    <div className="collection-ticket__inner">
+      <span className="collection-ticket__icon"><IconForKind kind={checkpoint.kind} /></span>
+      <span className="collection-ticket__copy"><b>{label}</b><strong>{count}</strong><small>Next: {next}</small></span>
+    </div>
   );
 }
 
@@ -132,14 +182,14 @@ function ChapterModule({ active }: { active: number }) {
   }
 
   if (active === 3) {
-    return <div className="chapter-module chapter-module--alternate"><div><span className="chapter-module__label">ORGANIZER VIEW</span><strong>Try a waterfront detour</strong></div><span className="chapter-module__path"><i /><i /><i /></span><span className="chapter-module__alt-dot" /></div>;
+    return <div className="organizer-explainer"><OrganizerFlag /><span><strong>Choose a spot on the map.</strong><small>Place a checkpoint where explorers should pause.</small></span></div>;
   }
 
   if (active === 4) {
-    return <div className="chapter-module chapter-module--complete"><span className="chapter-module__icon"><DiscoveryIcon /></span><div><span className="chapter-module__label">ROUTE COMPLETE</span><strong>4 checkpoints collected</strong></div><Footprints /></div>;
+    return <div className="chapter-module chapter-module--complete"><span className="chapter-module__icon"><IconForKind kind="finish" /></span><div><span className="chapter-module__label">ROUTE COMPLETE</span><strong>3 checkpoints collected</strong></div><CollectedStamp /></div>;
   }
 
-  return <div className="chapter-module chapter-module--ready"><Footprints /><span>Run. Find. Collect. Repeat.</span></div>;
+  return <div className="chapter-module chapter-module--ready"><span>Run. Find. Collect. Repeat.</span></div>;
 }
 
 export function MapStory() {
@@ -149,17 +199,37 @@ export function MapStory() {
   const mapLoadedRef = useRef(false);
   const mascotRef = useRef<MarkerHandle | null>(null);
   const checkpointRefs = useRef<MarkerHandle[]>([]);
+  const placementNoteRef = useRef<MarkerHandle | null>(null);
   const triggerRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
-  const activeRef = useRef(0);
+  const visualChapterRef = useRef(0);
+  const storyProgressRef = useRef(0);
+  const completedCheckpointRef = useRef(-1);
+  const mascotPoseRef = useRef<MapMascotPose>("idle");
+  const mascotIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reducedMotionRef = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const ticketRef = useRef<HTMLDivElement>(null);
+  const syncStoryRef = useRef<(progress: number) => void>(() => undefined);
   const [active, setActive] = useState(0);
+  const [collectionTicket, setCollectionTicket] = useState<number | null>(null);
   const [mapFailed, setMapFailed] = useState(false);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
+
+  useEffect(() => {
+    if (!ticketRef.current || collectionTicket === null) return;
+    if (reducedMotionRef.current) {
+      gsap.set(ticketRef.current, { opacity: 1, y: 0, rotate: 0 });
+      return;
+    }
+    const timeline = gsap.timeline();
+    timeline
+      .fromTo(ticketRef.current, { opacity: 0, y: 8, rotate: -1 }, { opacity: 1, y: 0, rotate: 0, duration: 0.32, ease: "power2.out" })
+      .to(ticketRef.current, { opacity: 0, y: -4, duration: 0.2, ease: "power2.out" }, "+=1");
+    return () => { timeline.kill(); };
+  }, [collectionTicket]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -172,14 +242,7 @@ export function MapStory() {
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: MAPBOX_STYLE_URL,
-        config: {
-          basemap: {
-            lightPreset: "day",
-            showPointOfInterestLabels: false,
-            showTransitLabels: false,
-            showPlaceLabels: true,
-          },
-        },
+        config: { basemap: { lightPreset: "day", showPointOfInterestLabels: false, showTransitLabels: false, showPlaceLabels: true } },
         accessToken: MAPBOX_ACCESS_TOKEN,
         center: demoCheckpoints[0].coordinates,
         zoom: 15.3,
@@ -195,13 +258,11 @@ export function MapStory() {
         map.addSource("orriii-route-upcoming", { type: "geojson", data: lineData(fullRouteCoordinates) });
         map.addSource("orriii-route-complete", { type: "geojson", data: lineData([demoCheckpoints[0].coordinates]) });
         map.addSource("orriii-route-active", { type: "geojson", data: lineData([]) });
-        map.addSource("orriii-organizer-detour", { type: "geojson", data: lineData([[49.9362, 40.5811], [49.9382, 40.5799], [49.9376, 40.5796]]) });
 
-        map.addLayer({ id: "orriii-route-casing", type: "line", source: "orriii-route-casing", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff8eb", "line-width": 11, "line-opacity": 0.92 } });
-        map.addLayer({ id: "orriii-route-upcoming", type: "line", source: "orriii-route-upcoming", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#a87559", "line-width": 4, "line-dasharray": [1.2, 1.8], "line-opacity": 0.7 } });
+        map.addLayer({ id: "orriii-route-casing", type: "line", source: "orriii-route-casing", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#fff8eb", "line-width": 10, "line-opacity": 0.94 } });
+        map.addLayer({ id: "orriii-route-upcoming", type: "line", source: "orriii-route-upcoming", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#a87559", "line-width": 3, "line-dasharray": [1.2, 1.8], "line-opacity": 0.66 } });
         map.addLayer({ id: "orriii-route-complete", type: "line", source: "orriii-route-complete", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#d85a0a", "line-width": 5, "line-opacity": 0.96 } });
-        map.addLayer({ id: "orriii-route-active", type: "line", source: "orriii-route-active", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#f16a0a", "line-width": 5, "line-dasharray": [0.6, 1.1], "line-opacity": 1 } });
-        map.addLayer({ id: "orriii-organizer-detour", type: "line", source: "orriii-organizer-detour", layout: { "line-cap": "round", "line-join": "round", visibility: "none" }, paint: { "line-color": "#58a85f", "line-width": 3, "line-dasharray": [0.5, 1.3], "line-opacity": 0.85 } });
+        map.addLayer({ id: "orriii-route-active", type: "line", source: "orriii-route-active", layout: { "line-cap": "round", "line-join": "round" }, paint: { "line-color": "#f16a0a", "line-width": 5, "line-opacity": 1 } });
 
         const bounds = new mapboxgl.LngLatBounds(demoCheckpoints[0].coordinates, demoCheckpoints[0].coordinates);
         fullRouteCoordinates.forEach((coordinate) => bounds.extend(coordinate));
@@ -210,10 +271,10 @@ export function MapStory() {
         checkpointRefs.current = demoCheckpoints.map((checkpoint) => {
           const element = document.createElement("div");
           element.className = "map-checkpoint-marker";
-          element.dataset.status = checkpoint.id === "start" ? "active" : "upcoming";
+          element.dataset.kind = checkpoint.kind;
+          element.dataset.status = "upcoming";
           const root = createRoot(element);
-          const props = checkpointMarkup(checkpoint.kind, checkpoint.number);
-          root.render(<CheckpointToken {...props} />);
+          root.render(<CheckpointToken kind={checkpoint.kind} number={checkpoint.number} />);
           const marker = new mapboxgl.Marker({ element, anchor: "center" }).setLngLat(checkpoint.coordinates).addTo(map);
           return { marker, element, root };
         });
@@ -223,9 +284,20 @@ export function MapStory() {
         mascotElement.dataset.direction = "right";
         const mascotRoot = createRoot(mascotElement);
         mascotRoot.render(<MascotMarker pose="idle" />);
-        const mascotMarker = new mapboxgl.Marker({ element: mascotElement, anchor: "center" }).setLngLat(demoCheckpoints[0].coordinates).addTo(map);
+        const mascotMarker = new mapboxgl.Marker({ element: mascotElement, anchor: "bottom" }).setLngLat(demoCheckpoints[0].coordinates).addTo(map);
         mascotRef.current = { marker: mascotMarker, element: mascotElement, root: mascotRoot };
-        updateRouteSources(map, routeStateForChapter(0));
+
+        const noteElement = document.createElement("div");
+        noteElement.className = "map-placement-note";
+        noteElement.dataset.visible = "false";
+        const noteRoot = createRoot(noteElement);
+        noteRoot.render(<PlacementAnnotation />);
+        const noteMarker = new mapboxgl.Marker({ element: noteElement, anchor: "left" }).setLngLat(selectedPlacement).addTo(map);
+        placementNoteRef.current = { marker: noteMarker, element: noteElement, root: noteRoot };
+
+        cameraToChapter(map, visualChapterRef.current);
+        if (visualChapterRef.current === 3) showPlacement(false);
+        syncStoryRef.current(storyProgressRef.current);
       });
     }
 
@@ -233,245 +305,250 @@ export function MapStory() {
 
     return () => {
       cancelled = true;
-      timelineRef.current?.kill();
-      checkpointRefs.current.forEach(({ marker, root }) => { marker.remove(); root.unmount(); });
+      if (mascotIdleTimerRef.current) clearTimeout(mascotIdleTimerRef.current);
+      const roots = checkpointRefs.current.map(({ root }) => root);
+      if (mascotRef.current) roots.push(mascotRef.current.root);
+      if (placementNoteRef.current) roots.push(placementNoteRef.current.root);
+      checkpointRefs.current.forEach(({ marker }) => marker.remove());
       mascotRef.current?.marker.remove();
-      mascotRef.current?.root.unmount();
+      placementNoteRef.current?.marker.remove();
+      mapRef.current?.remove();
       checkpointRefs.current = [];
       mascotRef.current = null;
-      mapRef.current?.remove();
+      placementNoteRef.current = null;
       mapRef.current = null;
       mapLoadedRef.current = false;
+      setTimeout(() => roots.forEach((root) => root.unmount()), 0);
     };
+    // Map setup is intentionally one-shot; the helper only mutates the map refs created here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function setMascotPose(pose: MapMascotPose) {
+    if (mascotPoseRef.current === pose) return;
+    mascotPoseRef.current = pose;
+    mascotRef.current?.root.render(<MascotMarker pose={pose} />);
+  }
+
+  function stopMascotMotion() {
+    const bob = mascotRef.current?.element.querySelector<HTMLElement>(".mascot-marker__bob");
+    if (bob) { gsap.killTweensOf(bob); gsap.set(bob, { y: 0, scale: 1 }); }
+  }
+
+  function startMascotMotion() {
+    if (reducedMotionRef.current) return;
+    const bob = mascotRef.current?.element.querySelector<HTMLElement>(".mascot-marker__bob");
+    if (bob) gsap.to(bob, { y: -2, duration: 0.24, ease: "sine.inOut", repeat: -1, yoyo: true, overwrite: true });
+  }
+
+  function updateScrollRouteSources(
+    map: MapboxMap,
+    state: ReturnType<typeof routeStateForChapter>,
+    completedCheckpoint: number,
+  ) {
+    if (completedCheckpointRef.current !== completedCheckpoint) {
+      setSourceData(map, "orriii-route-complete", state.completed);
+      completedCheckpointRef.current = completedCheckpoint;
+    }
+    setSourceData(map, "orriii-route-active", state.current);
+    setSourceData(map, "orriii-route-upcoming", state.upcoming);
+  }
+
+  function setMascotPosition(position: ReturnType<typeof getPointAlongRoute>, reversing = false) {
+    const handle = mascotRef.current;
+    if (!handle) return;
+    handle.marker.setLngLat(position.point);
+    const inner = handle.element.querySelector<HTMLElement>(".mascot-marker__inner");
+    if (!inner) return;
+    inner.style.setProperty("--mascot-angle", `${Math.max(-12, Math.min(12, position.heading * 0.18))}deg`);
+    handle.element.dataset.direction = reversing
+      ? position.horizontalDirection === "left" ? "right" : "left"
+      : position.horizontalDirection;
+  }
+
+  function setPlacementVisibility(visible: boolean) {
+    if (placementNoteRef.current) placementNoteRef.current.element.dataset.visible = String(visible);
+  }
+
+  function showPlacement(animate: boolean) {
+    setPlacementVisibility(true);
+    const note = placementNoteRef.current?.element.querySelector<HTMLElement>(".placement-annotation");
+    if (animate && !reducedMotionRef.current) {
+      if (note) gsap.fromTo(note, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.3, delay: 0.08, ease: "power2.out", overwrite: true });
+    }
+  }
+
+  function hidePlacement() {
+    setPlacementVisibility(false);
+  }
+
+  function cameraToChapter(map: MapboxMap, chapterIndex: number) {
+    const target = targetCheckpointForChapter(chapterIndex);
+    const camera = chapterCamera[chapterIndex] ?? chapterCamera[0];
+    map.stop();
+    map.easeTo({
+      center: demoCheckpoints[target].coordinates,
+      zoom: camera.zoom,
+      duration: reducedMotionRef.current ? 0 : 460,
+      padding: getFixedMapPadding(window.innerWidth <= STORY_MOBILE_BREAKPOINT),
+      bearing: 0,
+      pitch: 0,
+    });
+  }
+
+  function syncStoryToScroll(progress: number) {
+    const map = mapRef.current;
+    const previousProgress = storyProgressRef.current;
+    const clampedProgress = Math.max(0, Math.min(1, progress));
+    const reversing = clampedProgress < previousProgress;
+    const chapterProgress = clampedProgress * (storyChapters.length - 1);
+    const fromChapter = Math.min(storyChapters.length - 2, Math.floor(chapterProgress));
+    const toChapter = Math.min(storyChapters.length - 1, fromChapter + 1);
+    const segmentProgress = chapterProgress >= storyChapters.length - 1 ? 1 : chapterProgress - fromChapter;
+    const nextChapter = Math.max(0, Math.min(storyChapters.length - 1, Math.round(chapterProgress)));
+    storyProgressRef.current = clampedProgress;
+
+    if (nextChapter !== visualChapterRef.current) {
+      const movingForward = nextChapter > visualChapterRef.current;
+      visualChapterRef.current = nextChapter;
+      setActive(nextChapter);
+      setCollectionTicket(movingForward && nextChapter > 0 ? targetCheckpointForChapter(nextChapter) : null);
+
+      if (panelRef.current && !reducedMotionRef.current) {
+        gsap.killTweensOf(panelRef.current);
+        gsap.fromTo(
+          panelRef.current,
+          { opacity: 0.55, y: movingForward ? 10 : -10 },
+          { opacity: 1, y: 0, duration: 0.26, ease: "power3.out", overwrite: true },
+        );
+      }
+
+      if (map && mapLoadedRef.current) {
+        cameraToChapter(map, nextChapter);
+        if (nextChapter === 3) showPlacement(false);
+        else hidePlacement();
+      }
+    }
+
+    if (!map || !mapLoadedRef.current) return;
+
+    const fromCheckpoint = targetCheckpointForChapter(fromChapter);
+    const toCheckpoint = targetCheckpointForChapter(toChapter);
+    const path = routePathBetween(fromCheckpoint, toCheckpoint);
+
+    if (reducedMotionRef.current) {
+      const target = targetCheckpointForChapter(nextChapter);
+      if (completedCheckpointRef.current !== target) {
+        updateRouteSources(map, routeStateForChapter(nextChapter));
+        completedCheckpointRef.current = target;
+      }
+      setCheckpointStatuses(checkpointRefs.current.map(({ element }) => element), target);
+      mascotRef.current?.marker.setLngLat(demoCheckpoints[target].coordinates);
+      setMascotPose(nextChapter === storyChapters.length - 1 ? "celebrating" : "idle");
+      return;
+    }
+
+    const position = getPointAlongRoute(path, segmentProgress);
+    setMascotPosition(position, reversing);
+    if (segmentProgress <= 0.01) {
+      updateScrollRouteSources(map, routeStateForChapter(fromChapter), fromCheckpoint);
+      setCheckpointStatuses(checkpointRefs.current.map(({ element }) => element), fromCheckpoint);
+    } else {
+      updateScrollRouteSources(map, routeStateDuringMove(path, fromCheckpoint, toCheckpoint, segmentProgress, position), fromCheckpoint);
+      checkpointRefs.current.forEach(({ element }, index) => {
+        element.dataset.status = index <= fromCheckpoint ? "complete" : index === toCheckpoint ? "active" : "upcoming";
+      });
+    }
+
+    const isMoving = Math.abs(clampedProgress - previousProgress) > 0.0001;
+    if (isMoving && mascotPoseRef.current !== "running") {
+      setMascotPose("running");
+      startMascotMotion();
+    }
+    if (mascotIdleTimerRef.current) clearTimeout(mascotIdleTimerRef.current);
+    if (isMoving) {
+      mascotIdleTimerRef.current = setTimeout(() => {
+        stopMascotMotion();
+        setMascotPose(nextChapter === storyChapters.length - 1 ? "celebrating" : "idle");
+      }, 140);
+    }
+  }
+
+  syncStoryRef.current = syncStoryToScroll;
 
   useEffect(() => {
     const context = gsap.context(() => {
-      triggerRefs.current.forEach((trigger, index) => {
-        if (!trigger) return;
-        ScrollTrigger.create({
-          trigger,
-          start: "top 58%",
-          end: "bottom 42%",
-          onEnter: () => setActive(index),
-          onEnterBack: () => setActive(index),
-        });
+      ScrollTrigger.create({
+        trigger: storyRef.current,
+        start: () => `top top+=${window.innerWidth <= STORY_MOBILE_BREAKPOINT ? 64 : 76}`,
+        end: "bottom bottom",
+        onToggle: (self) => document.documentElement.classList.toggle("story-snapping", self.isActive),
+        onUpdate: (self) => syncStoryRef.current(self.progress),
+        onRefresh: (self) => syncStoryRef.current(self.progress),
       });
     }, storyRef);
-
-    return () => context.revert();
+    return () => {
+      document.documentElement.classList.remove("story-snapping");
+      context.revert();
+    };
   }, []);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    const previous = activeRef.current;
-    activeRef.current = active;
-    timelineRef.current?.kill();
-
-    if (!map || !mapLoadedRef.current) return;
-    const storyMap = map;
-
-    function setMarkerStatuses(chapterIndex: number) {
-      checkpointRefs.current.forEach(({ element }, index) => {
-        element.dataset.status = index < chapterIndex ? "complete" : index === chapterIndex ? "active" : "upcoming";
-      });
-    }
-
-    function setMascotPose(pose: MascotPose) {
-      const handle = mascotRef.current;
-      if (!handle) return;
-      handle.root.render(<MascotMarker pose={pose} />);
-    }
-
-    function setMascotHeading(heading: number, from: Coordinate, to: Coordinate) {
-      const handle = mascotRef.current;
-      if (!handle) return;
-      const inner = handle.element.querySelector<HTMLElement>(".mascot-marker__inner");
-      if (!inner) return;
-      inner.style.setProperty("--mascot-angle", `${Math.max(-22, Math.min(22, heading * 0.24))}deg`);
-      handle.element.dataset.direction = to[0] < from[0] ? "left" : "right";
-    }
-
-    function stopMascotBob() {
-      const bob = mascotRef.current?.element.querySelector<HTMLElement>(".mascot-marker__bob");
-      if (!bob) return;
-      gsap.killTweensOf(bob);
-      gsap.set(bob, { y: 0 });
-    }
-
-    function startMascotBob() {
-      const bob = mascotRef.current?.element.querySelector<HTMLElement>(".mascot-marker__bob");
-      if (!bob) return;
-      gsap.killTweensOf(bob);
-      gsap.to(bob, { y: -3, duration: 0.22, ease: "sine.inOut", repeat: -1, yoyo: true });
-    }
-
-    function putMascotAtChapter(chapterIndex: number) {
-      const handle = mascotRef.current;
-      if (!handle) return;
-      stopMascotBob();
-      handle.marker.setLngLat(demoCheckpoints[chapterIndex].coordinates);
-      setMascotHeading(0, demoCheckpoints[Math.max(0, chapterIndex - 1)].coordinates, demoCheckpoints[chapterIndex].coordinates);
-      setMascotPose(chapterIndex === demoCheckpoints.length - 1 ? "celebrating" : "idle");
-    }
-
-    function settleAtChapter(chapterIndex: number) {
-      updateRouteSources(storyMap, routeStateForChapter(chapterIndex));
-      setMarkerStatuses(chapterIndex);
-      putMascotAtChapter(chapterIndex);
-      if (storyMap.getLayer("orriii-organizer-detour")) {
-        storyMap.setLayoutProperty("orriii-organizer-detour", "visibility", chapterIndex === 3 ? "visible" : "none");
-      }
-    }
-
-    if (previous === active) {
-      settleAtChapter(active);
-      return;
-    }
-
-    const reduced = reducedMotionRef.current;
-    if (reduced || active < previous) {
-      settleAtChapter(active);
-      if (active !== 0) {
-        map.easeTo({ center: demoCheckpoints[active].coordinates, zoom: active === 4 ? 15.65 : 15.8, duration: reduced ? 0 : 580, padding: getFixedMapPadding(window.innerWidth <= STORY_MOBILE_BREAKPOINT) });
-      }
-      return;
-    }
-
-    const segmentIndex = previous;
-    const segment = routeSegments[segmentIndex];
-    const progress = { value: 0 };
-    const timeline = gsap.timeline({ defaults: { overwrite: true } });
-    timelineRef.current = timeline;
-
-    setMarkerStatuses(previous);
-    setMascotPose("running");
-    startMascotBob();
-    updateRouteSources(map, routeStateDuringMove(segmentIndex, 0));
-    timeline.to(panelRef.current, { opacity: 0.46, y: 9, duration: 0.18, ease: "power2.in" }, 0);
-    timeline.add(() => {
-      map.easeTo({ center: demoCheckpoints[active].coordinates, zoom: active === 4 ? 15.65 : 15.8, duration: 920, padding: getFixedMapPadding(window.innerWidth <= STORY_MOBILE_BREAKPOINT) });
-    }, 0.08);
-    timeline.to(progress, {
-      value: 1,
-      duration: 1.08,
-      ease: "power2.inOut",
-      onUpdate: () => {
-        const { point, heading } = interpolateRoute(segment, progress.value);
-        mascotRef.current?.marker.setLngLat(point);
-        setMascotHeading(heading, segment[0], segment[segment.length - 1]);
-        updateRouteSources(map, routeStateDuringMove(segmentIndex, progress.value));
-        if (map.getLayer("orriii-route-active")) {
-          const phase = 0.55 + progress.value * 0.45;
-          map.setPaintProperty("orriii-route-active", "line-dasharray", [phase, 1.05]);
-        }
-      },
-      onComplete: () => {
-        settleAtChapter(active);
-        setMascotPose(active === demoCheckpoints.length - 1 ? "celebrating" : "idle");
-      },
-    }, 0.2);
-    timeline.to(panelRef.current, { opacity: 1, y: 0, duration: 0.42, ease: "power3.out" }, 1.2);
-  }, [active]);
 
   const currentChapter = storyChapters[active];
 
   function jumpToChapter(index: number) {
-    const target = triggerRefs.current[index];
-    if (target) {
-      target.scrollIntoView({ behavior: reducedMotionRef.current ? "auto" : "smooth", block: "start" });
-    } else {
-      setActive(index);
-    }
+    triggerRefs.current[index]?.scrollIntoView({ behavior: reducedMotionRef.current ? "auto" : "smooth", block: "start" });
   }
 
   return (
     <>
-      <header className="site-header">
-        <Link href="/" aria-label="Orriii home"><OrriiiLogo /></Link>
-        <nav className="site-nav" aria-label="Main navigation">
-          <a href="#how-it-works">How it works</a>
-          <a href="#explorers">For explorers</a>
-          <a href="#organizers">For organizers</a>
-          <a href="#partners">Partners</a>
-          <AppStoreButton className="header-cta" />
-        </nav>
-      </header>
+      <ScrollAwareHeader
+        navItems={[
+          { label: "How it works", href: "#how-it-works" },
+          { label: "For organizers", href: "#organizers" },
+        ]}
+      />
 
       <main>
         <section className="story-course" id="how-it-works" ref={storyRef} aria-labelledby="story-title">
           <div className="story-course__sticky">
             <div className="story-course__map" id="story-map">
-              <div ref={mapContainerRef} className="story-course__map-canvas" aria-label="Interactive Sea Breeze Orriii demo route" />
-              <div className="map-course-badge"><span>LIVE DEMO ROUTE</span><strong>SEA BREEZE / BAKU</strong><small><LocationArrow /> 4 checkpoints + finish</small></div>
+              <div ref={mapContainerRef} className="story-course__map-canvas" aria-label="Animated Sea Breeze Orriii route preview" />
+              <div className="map-course-badge"><span>LIVE DEMO ROUTE</span><strong>SEA BREEZE / BAKU</strong><small><LocationArrow /> 3 checkpoints + finish</small></div>
               <div className="map-course-legend" aria-hidden="true"><span><i className="legend-line legend-line--orange" /> collected</span><span><i className="legend-line legend-line--dashed" /> ahead</span></div>
-              <div className="map-course-callout" aria-live="polite"><span>{currentChapter.callout}</span><strong>{currentChapter.count}</strong><small><Footprints /> keep moving</small></div>
-              <div className="map-course-progress" role="tablist" aria-label="Orriii course chapters">
-                {storyChapters.map((chapter, index) => (
-                  <button key={chapter.id} type="button" role="tab" aria-selected={active === index} aria-label={`Go to chapter ${index + 1}: ${chapter.label}`} className={active === index ? "is-active" : active > index ? "is-complete" : ""} onClick={() => jumpToChapter(index)}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <b>{chapter.label.split(" / ")[1]}</b>
-                  </button>
-                ))}
+              {collectionTicket !== null ? <div className="collection-ticket" ref={ticketRef} aria-live="polite"><CollectionTicket checkpointIndex={collectionTicket} /></div> : null}
+              <div className="map-course-progress">
+                <div className="map-course-progress__desktop" role="tablist" aria-label="Orriii story chapters">
+                  {progressLabels.map((label, index) => <button key={label} type="button" role="tab" aria-selected={active === index} aria-label={`Go to chapter ${index + 1}: ${label}`} className={active === index ? "is-active" : active > index ? "is-complete" : ""} onClick={() => jumpToChapter(index)}><span>{String(index + 1).padStart(2, "0")}</span><b>{label}</b>{active > index ? <i aria-hidden="true">✓</i> : null}</button>)}
+                </div>
+                <div className="map-course-progress__mobile" role="status" aria-live="polite"><span>{String(active + 1).padStart(2, "0")} / 05</span><b>{progressLabels[active]}</b></div>
               </div>
-              {mapFailed ? <div className="map-error" role="status"><strong>The route map could not load.</strong><p>The course story is still available below.</p></div> : null}
+              {mapFailed ? <div className="map-error" role="status"><strong>The route map could not load.</strong><p>The story is still available below.</p></div> : null}
             </div>
 
-            <div className="story-course__copy" ref={panelRef} id="explorers" aria-live="polite">
+            <div className="story-course__copy" ref={panelRef} id="explorers">
+              <span className="sr-only" aria-live="polite">Chapter {active + 1} of {storyChapters.length}: {currentChapter.title}</span>
               {active === 0 ? <span className="story-kicker">OUTSIDE IS CALLING</span> : null}
               <span className="story-eyebrow">{currentChapter.label}</span>
               <h1 id="story-title">{currentChapter.title}</h1>
               <p>{currentChapter.body}</p>
               <ChapterModule active={active} />
-              <div className="story-actions">
-                <AppStoreButton className="primary-action" />
-                <a className="secondary-action" href={active === 4 ? "#partners" : "#app"}>{active === 4 ? "Explore for partners" : "See how it works"} <Arrow /></a>
-              </div>
+              <div className="story-actions"><AppStoreButton className="primary-action" /><a className="secondary-action" href={active === 4 ? "#partners" : "#app"}>{active === 4 ? "Explore for partners" : "See how it works"} <Arrow /></a></div>
             </div>
           </div>
-
-          <div className="story-course__triggers" aria-hidden="true">
-            {storyChapters.map((chapter, index) => <div key={chapter.id} ref={(element) => { triggerRefs.current[index] = element; }} />)}
-          </div>
+          <div className="story-course__triggers" aria-hidden="true">{storyChapters.map((chapter, index) => <div key={chapter.id} ref={(element) => { triggerRefs.current[index] = element; }} />)}</div>
         </section>
 
         <section className="app-section" id="app" aria-labelledby="app-title">
-          <div className="app-section__visual">
-            <TopoPattern className="topo-pattern" />
-            <span className="app-section__sticker">YOUR POCKET COMPASS</span>
-            <Image src="/assets/orriii-iphone-product.png" alt="The Orriii app showing a route and checkpoint progress on a phone" width={840} height={1100} />
-            <div className="app-section__mascot"><OrriiiMascot pose="pointing" title="Orriii mascot pointing to the app" /></div>
-          </div>
-          <div className="app-section__copy">
-            <span className="section-eyebrow">THE ORRIII APP</span>
-            <h2 id="app-title">The adventure continues in your pocket.</h2>
-            <p>See your next checkpoint, follow your route and collect progress while you move.</p>
-            <ul className="app-feature-list">
-              <li><span>01</span>Live route progress</li>
-              <li><span>02</span>Distance to the next checkpoint</li>
-              <li><span>03</span>Checkpoint collection</li>
-              <li><span>04</span>Results and achievements</li>
-            </ul>
-            <div className="app-section__actions"><AppStoreButton className="primary-action" /><a className="secondary-action" href="/contact?interest=app-store">Join the launch list <Arrow /></a></div>
-            <div className="app-section__secondary-store"><span>Also coming to</span><GooglePlayComingSoon /></div>
-          </div>
+          <div className="app-section__visual"><TopoPattern className="topo-pattern" /><span className="app-section__sticker">YOUR POCKET COMPASS</span><Image src="/assets/orriii-iphone-cutout.png" alt="The Orriii app showing a route and checkpoint progress on a phone" width={726} height={1563} sizes="(max-width: 820px) 72vw, 30vw" /><div className="app-section__mascot"><OrriiiMascot pose="pointing" title="Orriii mascot pointing to the app" /></div></div>
+          <div className="app-section__copy"><span className="section-eyebrow">THE ORRIII APP</span><h2 id="app-title">The adventure continues in your pocket.</h2><p>See your next checkpoint, follow your route and collect progress while you move.</p><ul className="app-feature-list"><li><span>01</span>Live route progress</li><li><span>02</span>Distance to the next checkpoint</li><li><span>03</span>Checkpoint collection</li><li><span>04</span>Results and achievements</li></ul><div className="app-section__actions"><AppStoreButton className="primary-action" /><a className="secondary-action" href="/contact?interest=app-store">Join the launch list <Arrow /></a></div><div className="app-section__secondary-store"><span>Also coming to</span><GooglePlayComingSoon /></div></div>
         </section>
 
-        <section className="partner-section" id="partners" aria-labelledby="partner-title">
-          <span id="organizers" className="anchor-target" aria-hidden="true" />
-          <div className="partner-section__intro"><span className="section-eyebrow">FOR ORGANIZERS & PARTNERS</span><h2 id="partner-title">Turn your place into a playable route.</h2><p>Create checkpoints around a resort, park, campus or community and give visitors a new way to explore it.</p></div>
-          <ol className="partner-steps">
-            <li><div className="partner-step__icon"><PartnerIcon /></div><span>01</span><strong>Pick the place</strong><small>Choose a place people want to wander.</small></li>
-            <li><div className="partner-step__icon"><LocationArrow /></div><span>02</span><strong>Drop the checkpoints</strong><small>Give every corner a reason to be found.</small></li>
-            <li><div className="partner-step__icon"><OrganizerFlag /></div><span>03</span><strong>Publish the adventure</strong><small>Put your route in front of explorers.</small></li>
-          </ol>
-          <div className="partner-section__actions"><a className="outline-action" href="/contact?interest=partner">Build an Orriii experience <Arrow /></a><a className="secondary-action" href="/contact">Talk to the team <Arrow /></a></div>
-        </section>
+        <section className="partner-section" id="partners" aria-labelledby="partner-title"><GeometricShapes className="partner-section__shapes" /><span id="organizers" className="anchor-target" aria-hidden="true" /><div className="partner-section__intro"><span className="section-eyebrow">FOR ORGANIZERS & PARTNERS</span><h2 id="partner-title">Turn your place into a playable route.</h2><p>Create checkpoints around a resort, park, campus or community and give visitors a new way to explore it.</p></div><ol className="partner-steps"><li><div className="partner-step__icon"><PartnerIcon /></div><span>01</span><strong>Pick the place</strong><small>Choose a place people want to wander.</small></li><li><div className="partner-step__icon"><LocationArrow /></div><span>02</span><strong>Drop the checkpoints</strong><small>Give every corner a reason to be found.</small></li><li><div className="partner-step__icon"><OrganizerFlag /></div><span>03</span><strong>Publish the adventure</strong><small>Put your route in front of explorers.</small></li></ol><div className="partner-section__actions"><a className="outline-action" href="/contact?interest=partner">Build an Orriii experience <Arrow /></a><a className="secondary-action" href="/contact">Talk to the team <Arrow /></a></div></section>
 
         <section className="destination-cta" aria-labelledby="destination-title"><div><span className="section-eyebrow">NEXT DESTINATION</span><h2 id="destination-title">Where will you play next?</h2><p>Start with a real place. Add a little curiosity. Let Orriii draw the rest.</p></div><a className="primary-action" href="#how-it-works">Run the demo route <Arrow /></a></section>
       </main>
 
-      <footer className="orriii-footer"><Link href="/" aria-label="Orriii home"><OrriiiLogo /></Link><p>Orriii is a mobile orienteering product by <a href="https://www.renowa-labs.com" target="_blank" rel="noreferrer">Renowa Labs</a>.</p><div><a href="/contact">Contact</a><a href="#how-it-works">How it works</a><span>© {new Date().getFullYear()} ORRIII</span></div></footer>
+      <footer className="orriii-footer"><Link href="/" aria-label="Orriii home"><OrriiiLogo /></Link><p>Orriii is a mobile orienteering product by <a href="https://www.renowa-labs.com" target="_blank" rel="noreferrer">Renowa Labs</a>.</p><div><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="#how-it-works">How it works</a><span>© {new Date().getFullYear()} ORRIII</span></div></footer>
     </>
   );
 }

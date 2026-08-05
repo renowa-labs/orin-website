@@ -1,17 +1,26 @@
 import type { Coordinate } from "../../data/orriii-demo-route";
 
+export type RoutePosition = {
+  point: Coordinate;
+  longitude: number;
+  latitude: number;
+  heading: number;
+  horizontalDirection: "left" | "right";
+};
+
 export function distanceBetween(a: Coordinate, b: Coordinate) {
   const dx = (b[0] - a[0]) * Math.cos(((a[1] + b[1]) / 2) * (Math.PI / 180));
   const dy = b[1] - a[1];
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-export function interpolateRoute(
+export function getPointAlongRoute(
   coordinates: Coordinate[],
   progress: number,
-): { point: Coordinate; heading: number } {
+): RoutePosition {
   if (coordinates.length < 2) {
-    return { point: coordinates[0] ?? [0, 0], heading: 0 };
+    const point = coordinates[0] ?? [0, 0];
+    return { point, longitude: point[0], latitude: point[1], heading: 0, horizontalDirection: "right" };
   }
 
   const clamped = Math.max(0, Math.min(1, progress));
@@ -29,16 +38,23 @@ export function interpolateRoute(
       const end = coordinates[index + 1];
       const dx = end[0] - start[0];
       const dy = end[1] - start[1];
+      const point: Coordinate = [start[0] + dx * ratio, start[1] + dy * ratio];
       return {
-        point: [start[0] + dx * ratio, start[1] + dy * ratio],
+        point,
+        longitude: point[0],
+        latitude: point[1],
         heading: Math.atan2(dx, dy) * (180 / Math.PI),
+        horizontalDirection: dx < 0 ? "left" : "right",
       };
     }
     remaining -= length;
   }
 
-  return { point: coordinates[coordinates.length - 1], heading: 0 };
+  const point = coordinates[coordinates.length - 1];
+  return { point, longitude: point[0], latitude: point[1], heading: 0, horizontalDirection: "right" };
 }
+
+export const interpolateRoute = getPointAlongRoute;
 
 export function routeSliceAtProgress(
   coordinates: Coordinate[],

@@ -1,37 +1,50 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- vinext's development optimizer can load a duplicate React instance through next/link */
 import type { Metadata } from "next";
+import { GeometricShapes } from "@/components/brand/GeometricShapes";
 import { ContactForm } from "@/components/contact/ContactForm";
-import { AppStoreButton } from "@/components/site/AppStoreButton";
 import { OrriiiLogo } from "@/components/site/OrriiiLogo";
+import { ScrollAwareHeader } from "@/components/site/ScrollAwareHeader";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Contact Orriii — Renowa Labs",
+export const metadata: Metadata = createPageMetadata({
+  title: "Contact Orriii",
   description:
     "Contact the Orriii team about partner events, collaborations, product questions and mobile orienteering.",
-};
+  path: "/contact",
+});
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ interest?: string }>;
+}) {
+  const interest = (await searchParams).interest;
+  const isEarlyAccess = interest === "app-store";
+  const isPartner = interest === "partner";
+
   return (
     <>
       <main className="contact-page">
-        <header className="contact-header">
-          <a href="/" aria-label="Orriii home">
-            <OrriiiLogo />
-          </a>
-          <nav aria-label="Contact page navigation">
-            <a href="/#explorers">For explorers</a>
-            <a href="/#partners">For partners</a>
-            <AppStoreButton className="header-cta" />
-          </nav>
-        </header>
+        <ScrollAwareHeader
+          ariaLabel="Contact page navigation"
+          navClassName="contact-header__nav"
+          navItems={[
+            { label: "For explorers", href: "/#explorers" },
+          ]}
+          className="contact-header"
+        />
+        <GeometricShapes className="contact-page__shapes" />
 
         <section className="contact-layout">
           <div className="contact-intro">
-            <p className="contact-eyebrow">CONTACT / ORRIII</p>
-            <h1>Let&apos;s plan something worth going outside for.</h1>
+            <p className="contact-eyebrow">{isEarlyAccess ? "EARLY ACCESS / ORRIII" : isPartner ? "PARTNER WITH ORRIII" : "CONTACT / ORRIII"}</p>
+            <h1>{isEarlyAccess ? "Be first outside with Orriii." : isPartner ? "Turn your place into the next adventure." : "Let's plan something worth going outside for."}</h1>
             <p className="contact-intro__body">
-              Ask about Orriii, tell us about an event your organisation runs, or
-              start a product partnership with the Renowa Labs team.
+              {isEarlyAccess
+                ? "Join the launch list for product updates and early access opportunities. Tell us where you would take Orriii first."
+                : isPartner
+                  ? "Tell us about your resort, park, campus, club or event. We will help shape it into a playable Orriii route."
+                  : "Ask about Orriii, tell us about an event your organisation runs, or start a product partnership with the Renowa Labs team."}
             </p>
 
             <dl className="contact-facts">
@@ -41,7 +54,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <dt>BEST FOR</dt>
-                <dd>Partner events, clubs, schools and collaborations</dd>
+                <dd>{isEarlyAccess ? "Explorers, runners and curious early adopters" : "Partner events, clubs, schools and collaborations"}</dd>
               </div>
               <div>
                 <dt>PRODUCT BY</dt>
@@ -63,7 +76,7 @@ export default function ContactPage() {
               <span>NEW MESSAGE</span>
               <span>SECURED BY CLOUDFLARE</span>
             </div>
-            <ContactForm />
+            <ContactForm initialInterest={isEarlyAccess ? "app-store" : isPartner ? "partner" : undefined} />
           </div>
         </section>
       </main>
@@ -83,6 +96,7 @@ export default function ContactPage() {
         </p>
         <div>
           <a href="/">Orriii home</a>
+          <a href="/privacy">Privacy</a>
           <a
             href="https://www.renowa-labs.com"
             target="_blank"

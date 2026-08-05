@@ -35,7 +35,7 @@ test("server-renders the Orriii course homepage", async () => {
   assert.match(html, /The adventure continues in your pocket\./);
   assert.match(html, /Turn your place into a playable route\./);
   assert.match(html, /SEA BREEZE \/ BAKU/);
-  assert.match(html, /App Store — Coming soon/);
+  assert.match(html, /Download on the/);
   assert.match(html, /Renowa Labs/);
   assert.match(html, /href="\/contact"/);
 });
@@ -50,6 +50,16 @@ test("server-renders the Orriii contact page and protected form", async () => {
   assert.match(html, /Use the secure form on this page/);
   assert.match(html, /product by/);
   assert.match(html, /Send message/);
+});
+
+test("tailors the early-access contact funnel", async () => {
+  const response = await render("/contact?interest=app-store");
+  assert.equal(response.status, 200);
+
+  const html = await response.text();
+  assert.match(html, /Be first outside with Orriii\./);
+  assert.match(html, /early access opportunities/);
+  assert.match(html, /early adopters/);
 });
 
 test("contact API rejects invalid submissions before delivery", async () => {
@@ -85,6 +95,7 @@ test("keeps the map as stable context and preserves contact safeguards", async (
     contactMailer,
     turnstile,
     appStore,
+    demoRoute,
   ] = await Promise.all([
     readFile(
       new URL("../components/map-story/MapStory.tsx", import.meta.url),
@@ -105,22 +116,41 @@ test("keeps the map as stable context and preserves contact safeguards", async (
     ),
     readFile(new URL("../lib/contact/turnstile.ts", import.meta.url), "utf8"),
     readFile(new URL("../lib/app-store.ts", import.meta.url), "utf8"),
+    readFile(new URL("../data/orriii-demo-route.ts", import.meta.url), "utf8"),
   ]);
 
   assert.equal((mapStory.match(/new mapboxgl\.Map\(/g) ?? []).length, 1);
   assert.match(mapStory, /interactive:\s*false/);
   assert.match(mapStory, /map\.fitBounds/);
   assert.match(mapStory, /Turn your place into a playable route/);
-  assert.match(mapStory, /assets\/orriii-iphone-product\.png/);
+  assert.match(mapStory, /assets\/orriii-iphone-cutout\.png/);
   assert.match(css, /\.story-course\s*\{/);
   assert.match(mapStory, /ScrollTrigger/);
   assert.match(mapStory, /new mapboxgl\.Marker/);
   assert.match(mapStory, /orriii-route-active/);
   assert.match(mapStory, /line-dasharray/);
+  assert.doesNotMatch(mapStory, /orriii-placement-rings|placementData|circleLine/);
+  assert.match(mapStory, /upcoming:\s*chapterIndex === 3 \? \[\] : futurePathFromCheckpoint/);
+  assert.match(mapStory, /NEW CHECKPOINT/);
+  assert.match(mapStory, /OrriiiMapMascot/);
+  assert.match(mapStory, /getPointAlongRoute/);
+  assert.match(mapStory, /visualChapterRef/);
+  assert.match(mapStory, /storyProgressRef/);
+  assert.match(mapStory, /syncStoryToScroll/);
+  assert.match(mapStory, /onUpdate:.*syncStoryRef/);
+  assert.match(mapStory, /classList\.toggle\("story-snapping"/);
+  assert.match(css, /scroll-snap-type:\s*y mandatory/);
+  assert.match(css, /story-course__triggers > div[^}]*scroll-snap-align:\s*start/);
+  assert.doesNotMatch(mapStory, /snapTo:|moveToAdjacentCheckpoint|ScrollToPlugin/);
+  assert.match(mapStory, /map\.stop\(\)/);
   assert.match(mapStory, /OrriiiMascot/);
   assert.match(mapStory, /setLngLat/);
   assert.match(mapStory, /prefers-reduced-motion/);
   assert.match(css, /prefers-reduced-motion/);
+  assert.match(css, /\.chapter-module__icon svg\s*\{[^}]*fill:\s*none/);
+  assert.match(css, /\.chapter-module--found > svg\s*\{[^}]*fill:\s*none/);
+  assert.doesNotMatch(mapStory, /orriii-organizer-detour|chapter-module--alternate|chapter-module__path|chapter-module__alt-dot/);
+  assert.doesNotMatch(css, /map-course-callout|checkpoint-token__label|chapter-module--alternate|chapter-module__path|chapter-module__alt-dot/);
   assert.doesNotMatch(
     mapStory,
     /navigator\.geolocation|getCurrentPosition|watchPosition/,
@@ -131,6 +161,10 @@ test("keeps the map as stable context and preserves contact safeguards", async (
   assert.match(mapStory, /accessToken:\s*MAPBOX_ACCESS_TOKEN/);
   assert.match(mapStory, /mapbox-gl/);
   assert.match(mapStory, /SEA BREEZE \/ BAKU/);
+  assert.match(mapStory, /chapterCheckpointIndices\s*=\s*\[0, 1, 2, 3, 4\]/);
+  assert.doesNotMatch(mapStory, /PlacementMarker|placementMarkerRef|map-placement-marker/);
+  assert.doesNotMatch(demoRoute, /number:\s*"04"/);
+  assert.equal((demoRoute.match(/\{ id:\s*"(?:start|compass|camera|water|finish)",(?:\s*number:\s*"\d+",)?\s*kind:/g) ?? []).length, 5);
   assert.match(page, /<MapStory \/>/);
   assert.match(contactForm, /react-hook-form/);
   assert.match(contactForm, /toast\.success/);
