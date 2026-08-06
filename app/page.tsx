@@ -4,8 +4,8 @@ import { StorySnapController } from "../components/map-story/StorySnapController
 export default function Home() {
   return (
     <>
-      <StorySnapController />
       <MapStory />
+      <StorySnapController />
     </>
   );
 }
