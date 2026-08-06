@@ -4,7 +4,6 @@ import { ToastProvider } from "@/components/site/ToastProvider";
 import { SITE_URL } from "@/lib/site";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./globals.css";
-import "./scroll-fixes.css";
 import "./race.css";
 
 const instrumentSans = Instrument_Sans({
