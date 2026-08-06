@@ -30,9 +30,6 @@ html {
   overflow-x: clip;
   scroll-behavior: smooth;
 }
-html.story-snapping {
-  scroll-snap-type: y mandatory;
-}
 
 body {
   background: var(--orriii-cream);
@@ -685,13 +682,9 @@ button {
 .story-course__triggers > div {
   height: calc(100svh + 19px);
   scroll-margin-top: 76px;
-  scroll-snap-align: start;
 }
 .story-course__triggers > div:first-child {
   scroll-margin-top: 95px;
-}
-.story-snapping .app-section {
-  scroll-snap-align: start;
 }
 .map-error {
   align-items: center;
