@@ -26,6 +26,8 @@
 
 html {
   background: var(--orriii-cream);
+  max-width: 100%;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 html.story-snapping {
@@ -37,6 +39,7 @@ body {
   color: var(--orriii-ink);
   font-family: var(--font-instrument), Arial, sans-serif;
   margin: 0;
+  max-width: 100%;
   overflow-x: clip;
   text-rendering: optimizeLegibility;
 }
@@ -73,7 +76,7 @@ button {
   padding: 0 clamp(24px, 5vw, 80px);
   position: sticky;
   top: 0;
-  width: 100vw;
+  width: 100%;
   z-index: 30;
 }
 .site-header__home {
@@ -295,7 +298,7 @@ button {
   overflow: hidden;
   position: sticky;
   top: 76px;
-  width: 100vw;
+  width: 100%;
   z-index: 1;
 }
 .story-course__map {
@@ -311,6 +314,10 @@ button {
 .story-course__map-canvas > .mapboxgl-map {
   height: 100%;
   width: 100%;
+}
+/* The preview map is deliberately non-interactive; let wheel input scroll the story. */
+.story-course__map-canvas canvas.mapboxgl-canvas {
+  pointer-events: none;
 }
 .story-course__map::after {
   background: linear-gradient(
@@ -2098,9 +2105,7 @@ button {
     right: auto;
   }
   .collection-ticket {
-    bottom: 60px;
-    left: 12px;
-    max-width: 210px;
+    display: none;
   }
   .story-course__triggers > div {
     height: calc(100svh + 16px);
@@ -2124,8 +2129,7 @@ button {
     transform-origin: bottom center;
   }
   .map-placement-note {
-    transform: scale(0.84);
-    transform-origin: left center;
+    display: none;
   }
 
   .app-section {
