@@ -512,13 +512,11 @@ export function MapStory() {
         trigger: storyRef.current,
         start: () => `top top+=${window.innerWidth <= STORY_MOBILE_BREAKPOINT ? 64 : 76}`,
         end: "bottom bottom",
-        onToggle: (self) => document.documentElement.classList.toggle("story-snapping", self.isActive),
         onUpdate: (self) => syncStoryRef.current(self.progress),
         onRefresh: (self) => syncStoryRef.current(self.progress),
       });
     }, storyRef);
     return () => {
-      document.documentElement.classList.remove("story-snapping");
       context.revert();
     };
   }, []);
