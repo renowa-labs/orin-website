@@ -52,7 +52,10 @@ export default function RaceCourseMap({ controlPoints, map: mapConfig }: Props) 
       const coordinates = ordered.map(
         (point) => [point.coordinates.lng, point.coordinates.lat] as [number, number],
       );
-      const firstCoordinate = coordinates[0] ?? [mapConfig.centerLng, mapConfig.centerLat];
+      const firstCoordinate: [number, number] = coordinates[0] ?? [
+        mapConfig.centerLng,
+        mapConfig.centerLat,
+      ];
 
       const courseMap = new mapboxgl.Map({
         container: containerRef.current,
