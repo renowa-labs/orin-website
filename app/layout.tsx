@@ -5,6 +5,7 @@ import { SITE_URL } from "@/lib/site";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./globals.css";
 import "./race.css";
+import "./not-found.css";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument",
