@@ -1,5 +1,5 @@
 .not-found-page {
-  --not-found-green: #245c3d;
+  --not-found-accent: var(--orriii-orange-dark);
   background: var(--orriii-paper);
   color: var(--orriii-ink);
   min-height: 100svh;
@@ -46,7 +46,7 @@
 }
 
 .not-found-page__home-link span {
-  color: var(--not-found-green);
+  color: var(--not-found-accent);
   font-size: 22px;
   line-height: 1;
 }
@@ -64,7 +64,12 @@
 }
 
 .not-found-page__code {
-  background: linear-gradient(145deg, #173e2b, var(--not-found-green) 54%, #31704e);
+  background: linear-gradient(
+    145deg,
+    var(--orriii-orange-deep),
+    var(--orriii-orange-dark) 54%,
+    var(--orriii-orange)
+  );
   background-clip: text;
   color: transparent;
   display: block;
@@ -102,7 +107,7 @@
 .not-found-page__primary,
 .not-found-page__secondary {
   align-items: center;
-  border: 1px solid var(--not-found-green);
+  border: 1px solid var(--not-found-accent);
   border-radius: 11px;
   display: inline-flex;
   font-size: 14px;
@@ -118,13 +123,13 @@
 }
 
 .not-found-page__primary {
-  background: var(--not-found-green);
+  background: var(--not-found-accent);
   color: #fff;
 }
 
 .not-found-page__secondary {
   background: rgba(255, 252, 246, 0.72);
-  color: var(--not-found-green);
+  color: var(--not-found-accent);
 }
 
 .not-found-page__flag {
@@ -183,8 +188,8 @@
 
 .not-found-page__contours {
   fill: none;
-  opacity: 0.12;
-  stroke: var(--not-found-green);
+  opacity: 0.1;
+  stroke: var(--orriii-orange-dark);
   stroke-width: 1.25;
 }
 
@@ -217,11 +222,11 @@
   }
 
   .not-found-page__primary:hover {
-    background: #173e2b;
+    background: var(--orriii-orange-deep);
   }
 
   .not-found-page__secondary:hover {
-    background: var(--orriii-soft-green);
+    background: var(--orriii-soft-orange);
   }
 }
 
