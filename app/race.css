@@ -197,6 +197,59 @@
   z-index: 2;
 }
 
+.race-course__graphic--map {
+  background: #e8e5dd;
+}
+
+.race-course__graphic--map::before,
+.race-course__graphic--map::after {
+  display: none;
+}
+
+.race-course__map-canvas,
+.race-course__map-canvas > .mapboxgl-map {
+  height: 100%;
+  width: 100%;
+}
+
+.race-course__map-checkpoint {
+  align-items: center;
+  background: var(--orriii-orange);
+  border: 3px solid var(--orriii-paper);
+  border-radius: 50%;
+  box-shadow: 0 6px 16px rgba(43, 27, 21, 0.2);
+  color: #fff;
+  display: flex;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 12px;
+  font-weight: 600;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.race-course__map-error,
+.race-course__graphic--unavailable {
+  align-items: center;
+  color: var(--orriii-muted);
+  display: flex;
+  font-size: 14px;
+  justify-content: center;
+  text-align: center;
+}
+
+.race-course__map-error {
+  background: rgba(255, 248, 235, 0.94);
+  inset: 0;
+  padding: 24px;
+  position: absolute;
+  z-index: 3;
+}
+
+.race-course__graphic--unavailable {
+  padding: 24px;
+}
+
 .race-course > p {
   color: var(--orriii-muted);
   font-size: 14px;
