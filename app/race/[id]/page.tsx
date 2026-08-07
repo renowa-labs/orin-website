@@ -7,6 +7,7 @@ import { ScrollAwareHeader } from "@/components/site/ScrollAwareHeader";
 import { getPublicLeaderboard, getPublicRace } from "@/lib/public-races";
 import { SITE_URL } from "@/lib/site";
 import OpenRaceButton from "./OpenRaceButton";
+import RaceCourseMap from "./RaceCourseMap";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -102,6 +103,9 @@ export default async function RacePage({ params }: Props) {
   };
 
   const leaderboardEntries = leaderboard?.leaderboard ?? [];
+  const hasPublicMap = Boolean(
+    race.map && race.course.controlPoints?.length,
+  );
 
   return (
     <div className="race-page">
@@ -170,34 +174,26 @@ export default async function RacePage({ params }: Props) {
             </div>
           </div>
 
-          <div className="race-course" aria-label="Hidden course preview">
+          <div className="race-course" aria-label="Event course map">
             <div className="race-course__meta">
-              <span>COURSE PREVIEW</span>
+              <span>COURSE MAP</span>
               <strong>{race.course.controlPointCount} CHECKPOINTS</strong>
             </div>
 
-            <div className="race-course__graphic" aria-hidden="true">
-              <span className="race-course__route" />
-              {Array.from(
-                { length: Math.min(race.course.controlPointCount, 7) },
-                (_, index) => (
-                  <span
-                    key={index}
-                    className="race-course__checkpoint"
-                    style={{
-                      left: `${12 + index * 12}%`,
-                      top: `${index % 2 ? 60 : 36}%`,
-                    }}
-                  >
-                    {index + 1}
-                  </span>
-                ),
-              )}
-            </div>
+            {hasPublicMap && race.map ? (
+              <RaceCourseMap
+                controlPoints={race.course.controlPoints}
+                map={race.map}
+              />
+            ) : (
+              <div className="race-course__graphic race-course__graphic--unavailable">
+                <span>Course map data is not available yet.</span>
+              </div>
+            )}
 
             <p>
-              Exact checkpoint positions and hints stay hidden until the race
-              opens in the app.
+              The map shows the event&apos;s real checkpoint positions and course
+              line. Open the race in Orriii to join and navigate it live.
             </p>
           </div>
         </section>
