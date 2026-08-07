@@ -31,6 +31,27 @@ export type PublicRace = {
   course: {
     controlPointCount: number;
     distanceMeters: number;
+    controlPoints: Array<{
+      id: string;
+      order: number;
+      name?: string;
+      coordinates: {
+        lat: number;
+        lng: number;
+      };
+    }>;
+  };
+  map: {
+    centerLat: number;
+    centerLng: number;
+    zoom: number;
+    bearing?: number;
+    bounds?: {
+      topLeft: { lat: number; lng: number };
+      topRight: { lat: number; lng: number };
+      bottomRight: { lat: number; lng: number };
+      bottomLeft: { lat: number; lng: number };
+    };
   };
   participantCount: number;
   maxParticipants?: number;
