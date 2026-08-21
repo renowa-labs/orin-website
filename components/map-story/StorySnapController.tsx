@@ -11,6 +11,7 @@ const WHEEL_GESTURE_IDLE_MS = 140;
 const WHEEL_GESTURE_ACCELERATION = 1.5;
 const WHEEL_ACCELERATION_FLOOR = 4;
 const WHEEL_MIN_DELTA = 2;
+const SNAP_EPSILON = 4;
 
 export function StorySnapController() {
   useEffect(() => {
@@ -47,11 +48,14 @@ export function StorySnapController() {
       return Math.max(0, element.getBoundingClientRect().top + window.scrollY - scrollMargin);
     }
 
+    function wheelDeltaInPixels(event: WheelEvent) {
+      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 16;
+      if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * window.innerHeight;
+      return event.deltaY;
+    }
+
     function syncScrollPosition(target: number) {
       window.scrollTo(0, target);
-      // The map/mascot story is driven by ScrollTrigger progress. Updating it in
-      // the same frame as the controlled scroll keeps the route animation locked
-      // to the snap tween instead of waiting for a later native scroll callback.
       ScrollTrigger.update();
     }
 
@@ -61,6 +65,7 @@ export function StorySnapController() {
 
       if (prefersReducedMotion) {
         syncScrollPosition(target);
+        lastScrollY = target;
         return;
       }
 
@@ -73,6 +78,7 @@ export function StorySnapController() {
         onUpdate: () => syncScrollPosition(scroll.y),
         onComplete: () => {
           syncScrollPosition(target);
+          lastScrollY = target;
           transitioning = false;
         },
       });
@@ -100,18 +106,7 @@ export function StorySnapController() {
       moveTo(leavingStory ? nextSectionTop : targets[targetIndex]);
     }
 
-    function onWheel(event: WheelEvent) {
-      if (event.ctrlKey || event.deltaY === 0) return;
-
-      const direction = Math.sign(event.deltaY);
-      const magnitude = Math.abs(event.deltaY);
-      const targets = stops.map(topOf);
-      const nextSectionTop = topOf(nextSectionElement);
-      const inStory = window.scrollY >= targets[0] - 1 && window.scrollY < nextSectionTop - 1;
-      if (!inStory || (direction < 0 && window.scrollY <= targets[0])) return;
-
-      event.preventDefault();
-
+    function recordWheel(direction: number, magnitude: number) {
       const now = performance.now();
       const idle = lastWheelAt === 0 || now - lastWheelAt > WHEEL_GESTURE_IDLE_MS;
       const reversed = lastWheelDirection !== 0 && direction !== lastWheelDirection;
@@ -123,17 +118,53 @@ export function StorySnapController() {
       lastWheelMagnitude = magnitude;
       lastWheelDirection = direction;
 
+      if (idle || reversed || accelerated) wheelGestureConsumed = false;
+    }
+
+    function onWheel(event: WheelEvent) {
+      if (event.ctrlKey || event.deltaY === 0) return;
+
+      const deltaY = wheelDeltaInPixels(event);
+      const direction = Math.sign(deltaY);
+      const magnitude = Math.abs(deltaY);
+      const targets = stops.map(topOf);
+      const nextSectionTop = topOf(nextSectionElement);
+      const firstTarget = targets[0];
+      const lastTarget = targets[targets.length - 1];
+      const inStory = window.scrollY >= firstTarget - 1 && window.scrollY < nextSectionTop - 1;
+      const crossingBackIntoStory =
+        direction < 0 &&
+        window.scrollY >= nextSectionTop - 1 &&
+        window.scrollY + deltaY < nextSectionTop - 1;
+
+      // Catch the exact wheel event that would cross from the app section back
+      // into the story. Without this, native trackpad momentum can overshoot the
+      // final story stop before the controller starts intercepting input, which
+      // makes reverse entry look laggy and can skip a chapter.
+      if (crossingBackIntoStory) {
+        event.preventDefault();
+        recordWheel(direction, magnitude);
+        wheelGestureConsumed = true;
+        if (!transitioning) moveTo(lastTarget);
+        return;
+      }
+
+      if (!inStory) {
+        wheelGestureConsumed = false;
+        return;
+      }
+
+      if (direction < 0 && window.scrollY <= firstTarget) {
+        wheelGestureConsumed = false;
+        return;
+      }
+
+      event.preventDefault();
+      recordWheel(direction, magnitude);
+
       // Momentum from the gesture that started the current transition is always
       // consumed. Do not let those events re-arm the next chapter while moving.
       if (transitioning) return;
-
-      // A fresh finger/wheel impulse is either separated by a short idle gap,
-      // reverses direction, or rises sharply after the previous momentum tail.
-      // This lets the next intentional swipe work immediately without requiring
-      // a click, while decaying inertial events remain part of the old gesture.
-      if (idle || reversed || accelerated) {
-        wheelGestureConsumed = false;
-      }
 
       if (wheelGestureConsumed || magnitude < WHEEL_MIN_DELTA) return;
 
@@ -156,17 +187,30 @@ export function StorySnapController() {
     function onScrollEnd() {
       if (!nativeDirection || transitioning) return;
       clearTimeout(nativeScrollTimer);
+
       const targets = stops.map(topOf);
       const nextSectionTop = topOf(nextSectionElement);
-      if (
-        [...targets, nextSectionTop].some((target) => Math.abs(target - window.scrollY) < 4)
-      ) {
-        nativeDirection = 0;
-        return;
-      }
+      const allTargets = [...targets, nextSectionTop];
+      const currentY = window.scrollY;
       const direction = nativeDirection;
       nativeDirection = 0;
-      moveBy(direction);
+
+      if (currentY < targets[0] - SNAP_EPSILON || currentY > nextSectionTop + SNAP_EPSILON) return;
+      if (allTargets.some((target) => Math.abs(target - currentY) < SNAP_EPSILON)) return;
+
+      // Native scrolling can still happen when entering from outside the story,
+      // dragging the scrollbar, or using keyboard/touch input. Snap to the next
+      // stop in the direction already travelled instead of calling moveBy(),
+      // which would add another chapter and cause the reverse-entry double step.
+      if (direction > 0) {
+        const target = allTargets.find((candidate) => candidate > currentY + SNAP_EPSILON);
+        if (target !== undefined) moveTo(target);
+        return;
+      }
+
+      const previousTargets = targets.filter((candidate) => candidate < currentY - SNAP_EPSILON);
+      const target = previousTargets[previousTargets.length - 1];
+      if (target !== undefined) moveTo(target);
     }
 
     window.addEventListener("wheel", onWheel, { passive: false, capture: true });
