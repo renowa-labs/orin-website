@@ -2,9 +2,15 @@
 
 import { useEffect } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const STEP_DURATION = 0.55;
-const WHEEL_GESTURE_IDLE_MS = 200;
+const WHEEL_GESTURE_IDLE_MS = 140;
+const WHEEL_GESTURE_ACCELERATION = 1.5;
+const WHEEL_ACCELERATION_FLOOR = 4;
+const WHEEL_MIN_DELTA = 2;
 
 export function StorySnapController() {
   useEffect(() => {
@@ -24,10 +30,12 @@ export function StorySnapController() {
     ).matches;
     const scroll = { y: window.scrollY };
     let transitioning = false;
-    let wheelGestureActive = false;
+    let wheelGestureConsumed = false;
+    let lastWheelAt = 0;
+    let lastWheelMagnitude = 0;
+    let lastWheelDirection = 0;
     let nativeDirection = 0;
     let lastScrollY = window.scrollY;
-    let wheelGestureTimer: ReturnType<typeof setTimeout> | undefined;
     let nativeScrollTimer: ReturnType<typeof setTimeout> | undefined;
     let tween: gsap.core.Tween | undefined;
 
@@ -39,12 +47,20 @@ export function StorySnapController() {
       return Math.max(0, element.getBoundingClientRect().top + window.scrollY - scrollMargin);
     }
 
+    function syncScrollPosition(target: number) {
+      window.scrollTo(0, target);
+      // The map/mascot story is driven by ScrollTrigger progress. Updating it in
+      // the same frame as the controlled scroll keeps the route animation locked
+      // to the snap tween instead of waiting for a later native scroll callback.
+      ScrollTrigger.update();
+    }
+
     function moveTo(target: number) {
       nativeDirection = 0;
       scroll.y = window.scrollY;
 
       if (prefersReducedMotion) {
-        window.scrollTo(0, target);
+        syncScrollPosition(target);
         return;
       }
 
@@ -54,8 +70,9 @@ export function StorySnapController() {
         duration: STEP_DURATION,
         ease: "power3.inOut",
         overwrite: true,
-        onUpdate: () => window.scrollTo(0, scroll.y),
+        onUpdate: () => syncScrollPosition(scroll.y),
         onComplete: () => {
+          syncScrollPosition(target);
           transitioning = false;
         },
       });
@@ -87,6 +104,7 @@ export function StorySnapController() {
       if (event.ctrlKey || event.deltaY === 0) return;
 
       const direction = Math.sign(event.deltaY);
+      const magnitude = Math.abs(event.deltaY);
       const targets = stops.map(topOf);
       const nextSectionTop = topOf(nextSectionElement);
       const inStory = window.scrollY >= targets[0] - 1 && window.scrollY < nextSectionTop - 1;
@@ -94,21 +112,32 @@ export function StorySnapController() {
 
       event.preventDefault();
 
-      clearTimeout(wheelGestureTimer);
-      wheelGestureTimer = setTimeout(() => {
-        wheelGestureActive = false;
-      }, WHEEL_GESTURE_IDLE_MS);
+      const now = performance.now();
+      const idle = lastWheelAt === 0 || now - lastWheelAt > WHEEL_GESTURE_IDLE_MS;
+      const reversed = lastWheelDirection !== 0 && direction !== lastWheelDirection;
+      const accelerated =
+        lastWheelMagnitude > 0 &&
+        magnitude >= Math.max(WHEEL_ACCELERATION_FLOOR, lastWheelMagnitude * WHEEL_GESTURE_ACCELERATION);
 
-      // A trackpad swipe emits many wheel events, including inertial events after
-      // the fingers leave the surface. Treat that whole burst as one navigation
-      // gesture so one swipe can advance at most one story chapter.
-      if (wheelGestureActive) return;
-      wheelGestureActive = true;
+      lastWheelAt = now;
+      lastWheelMagnitude = magnitude;
+      lastWheelDirection = direction;
 
-      // Consume a new gesture while the previous chapter transition is still
-      // animating instead of replaying it after the animation completes.
+      // Momentum from the gesture that started the current transition is always
+      // consumed. Do not let those events re-arm the next chapter while moving.
       if (transitioning) return;
 
+      // A fresh finger/wheel impulse is either separated by a short idle gap,
+      // reverses direction, or rises sharply after the previous momentum tail.
+      // This lets the next intentional swipe work immediately without requiring
+      // a click, while decaying inertial events remain part of the old gesture.
+      if (idle || reversed || accelerated) {
+        wheelGestureConsumed = false;
+      }
+
+      if (wheelGestureConsumed || magnitude < WHEEL_MIN_DELTA) return;
+
+      wheelGestureConsumed = true;
       moveBy(direction);
     }
 
@@ -148,7 +177,6 @@ export function StorySnapController() {
       window.removeEventListener("wheel", onWheel, true);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("scrollend", onScrollEnd);
-      clearTimeout(wheelGestureTimer);
       clearTimeout(nativeScrollTimer);
       tween?.kill();
       root.style.scrollBehavior = previousScrollBehavior;
