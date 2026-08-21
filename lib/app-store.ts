@@ -1,8 +1,7 @@
-const configuredAppStoreUrl = process.env.NEXT_PUBLIC_APP_STORE_URL?.trim() ?? "";
+const DEFAULT_APP_STORE_URL = "https://apps.apple.com/az/app/orin-discover-city/id6782856488";
+const configuredAppStoreUrl = process.env.NEXT_PUBLIC_APP_STORE_URL?.trim() || DEFAULT_APP_STORE_URL;
 
 function getValidAppStoreUrl(value: string) {
-  if (!value) return null;
-
   try {
     const url = new URL(value);
     return url.protocol === "https:" ? url.toString() : null;
@@ -11,5 +10,5 @@ function getValidAppStoreUrl(value: string) {
   }
 }
 
-export const APP_STORE_URL = getValidAppStoreUrl(configuredAppStoreUrl);
-export const APP_STORE_FALLBACK = "/contact?interest=app-store";
+export const APP_STORE_URL = getValidAppStoreUrl(configuredAppStoreUrl) ?? DEFAULT_APP_STORE_URL;
+export const APP_STORE_FALLBACK = DEFAULT_APP_STORE_URL;
