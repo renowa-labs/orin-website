@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import gsap from "gsap";
 
 const STEP_DURATION = 0.55;
+const WHEEL_GESTURE_IDLE_MS = 200;
 
 export function StorySnapController() {
   useEffect(() => {
@@ -23,9 +24,10 @@ export function StorySnapController() {
     ).matches;
     const scroll = { y: window.scrollY };
     let transitioning = false;
-    let queuedDirection = 0;
+    let wheelGestureActive = false;
     let nativeDirection = 0;
     let lastScrollY = window.scrollY;
+    let wheelGestureTimer: ReturnType<typeof setTimeout> | undefined;
     let nativeScrollTimer: ReturnType<typeof setTimeout> | undefined;
     let tween: gsap.core.Tween | undefined;
 
@@ -53,7 +55,9 @@ export function StorySnapController() {
         ease: "power3.inOut",
         overwrite: true,
         onUpdate: () => window.scrollTo(0, scroll.y),
-        onComplete,
+        onComplete: () => {
+          transitioning = false;
+        },
       });
     }
 
@@ -68,7 +72,7 @@ export function StorySnapController() {
         (nearest, target, index) =>
           Math.abs(target - window.scrollY) < Math.abs(targets[nearest] - window.scrollY)
             ? index
-          : nearest,
+            : nearest,
         0,
       );
       const leavingStory = direction > 0 && current === targets.length - 1;
@@ -89,10 +93,21 @@ export function StorySnapController() {
       if (!inStory || (direction < 0 && window.scrollY <= targets[0])) return;
 
       event.preventDefault();
-      if (transitioning) {
-        queuedDirection = direction;
-        return;
-      }
+
+      clearTimeout(wheelGestureTimer);
+      wheelGestureTimer = setTimeout(() => {
+        wheelGestureActive = false;
+      }, WHEEL_GESTURE_IDLE_MS);
+
+      // A trackpad swipe emits many wheel events, including inertial events after
+      // the fingers leave the surface. Treat that whole burst as one navigation
+      // gesture so one swipe can advance at most one story chapter.
+      if (wheelGestureActive) return;
+      wheelGestureActive = true;
+
+      // Consume a new gesture while the previous chapter transition is still
+      // animating instead of replaying it after the animation completes.
+      if (transitioning) return;
 
       moveBy(direction);
     }
@@ -125,15 +140,6 @@ export function StorySnapController() {
       moveBy(direction);
     }
 
-    const onComplete = () => {
-      transitioning = false;
-      if (queuedDirection) {
-        const direction = queuedDirection;
-        queuedDirection = 0;
-        moveBy(direction);
-      }
-    };
-
     window.addEventListener("wheel", onWheel, { passive: false, capture: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("scrollend", onScrollEnd);
@@ -142,6 +148,7 @@ export function StorySnapController() {
       window.removeEventListener("wheel", onWheel, true);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("scrollend", onScrollEnd);
+      clearTimeout(wheelGestureTimer);
       clearTimeout(nativeScrollTimer);
       tween?.kill();
       root.style.scrollBehavior = previousScrollBehavior;
